@@ -8,25 +8,19 @@ namespace samson\cms\web\gallery;
 class App extends \samson\cms\App
 {
 	/** Application name */
-	public $app_name = 'Галлерея';
+	public $name = 'Галлерея';
 	
 	/** Hide application access from main menu */
 	public $hide = true;
 	
 	/** Identifier */
 	protected $id = 'gallery';
-	
-	/** Relations */
-	protected $requirements = array
-	(
-		'ActiveRecord'
-	);	
-	
+
 	/** @see \samson\core\ExternalModule::init() */
 	public function prepare( array $params = null )
 	{
 		// Create new gallery tab object to load it 
-		class_exists( ns_classname('Tab','samson\cms\web\gallery') );
+		class_exists( ns_classname('MaterialTab','samson\cms\web\gallery') );
 	}
 	
 	/**
