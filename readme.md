@@ -1,3 +1,3 @@
-#Material application for SamsonCMS
+#Material Gallery tab for SamsonCMS
 
 (SamsonCMS official web-site)[samsoncms.com]
