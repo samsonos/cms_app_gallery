@@ -19,6 +19,7 @@ class App extends \samson\cms\App
 	/** @see \samson\core\ExternalModule::init() */
 	public function prepare( array $params = null )
 	{
+        // TODO: Change this logic to make tab loading more simple
 		// Create new gallery tab object to load it 
 		class_exists( ns_classname('MaterialTab','samson\cms\web\gallery') );
 	}
