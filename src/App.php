@@ -1,5 +1,5 @@
 <?php
-namespace samson\cms\tab\gallery;
+namespace samson\cms\web\gallery;
 
 /**
  * SamsonCMS application for interacting with material gallery

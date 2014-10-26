@@ -10,7 +10,7 @@ use samson\cms\web\material\FormTab;
  *
  * @author Egorov Vitaly <egorov@samsonos.com>
  */
-class Tab extends FormTab
+class MaterialTab extends FormTab
 {	
 	/** Tab name for showing in header */
 	public $name = 'Галлерея';

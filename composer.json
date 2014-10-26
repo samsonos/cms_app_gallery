@@ -1,6 +1,6 @@
 {
-    "name":"samsonos/cms_tab_gallery",
-    "description":"SamsonCMS Material gallery tab",
+    "name":"samsonos/cms_web_gallery",
+    "description":"SamsonCMS Material gallery application",
     "author":"Vitaly Iegorov <egorov@samsonos.com>",
     "require":{
         "samsonos/cms_app":"*"
@@ -10,7 +10,7 @@
     "autoload": {
         "classmap": ["src/"],
         "psr-0": {
-            "samson\\cms\\tab\\gallery": "src/"
+            "samson\\cms\\web\\gallery": "src/"
         }
     }
 }
