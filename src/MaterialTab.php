@@ -1,8 +1,6 @@
 <?php
-namespace samson\cms\tab\gallery;
+namespace samson\cms\web\gallery;
 
-use samson\cms\CMSNav;
-use samson\activerecord\dbRecord;
 use samson\cms\web\material\FormTab;
 
 /**
