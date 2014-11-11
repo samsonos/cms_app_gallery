@@ -68,11 +68,40 @@ var SJSGallery = function( container )
 			if(confirm('Delete image?'))
 			{
 				o.loader.show('Обновление галлереи',true);
-				
 				s.ajax( btn.a('href'), init );
 			}
 			
 		}, true, true );
+
+        $('.scms-gallery').sortable({
+            axis: "x,y",
+            revert: true,
+            scroll: true,
+            placeholder: "sortable-placeholder",
+            cursor: "move",
+            containment: "parent",
+            delay: 150,
+            stop: function(event, ui) {
+                var ids = [];
+                $('.scms-gallery li').each(function(idx, item){
+                    if (item.hasAttribute('image_id')) {
+                        ids[idx] = item.getAttribute('image_id');
+                    }
+                });
+                s.trace(ids);
+                $.ajax({
+                    url: '/gallery/priority',
+                    type: 'POST',
+                    async: true,
+                    data: {ids:ids},
+                    success: function(response){
+                        //var obj = $.parseJSON(response);
+                        //s.trace(obj.status);
+                    }
+                });
+                //s.ajax('/gallery/priority', )
+            }
+        });
 		
 	};
 	

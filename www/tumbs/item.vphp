@@ -1,4 +1,5 @@
-<li>		
+<li image_id = "<?php v('image_PhotoID') ?>">
 	<?php vimg('imgpath')?>
-	<a href="<?php url_base('gallery','delete','image_id','update','material_id')?>" class="btn-delete" title="<?php t('Удалить')?>"><?php t('Удалить')?></a>		
+    <p><span class="img_name"><?php iv('image_Name') ?></span>,<span class="img_size"><?php iv('size') ?></span></p>
+	<a href="<?php url_base('gallery','delete','image_id','update','material_id')?>" class="btn-delete" title="<?php t('Удалить')?>"><?php t('Удалить')?></a>
 </li>	

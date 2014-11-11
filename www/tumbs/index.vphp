@@ -1,4 +1,4 @@
-<ul class="scms-gallery">
+<ul class="scms-gallery clearfix">
 	<?php v('images')?>
 	<li class="btn-upload">
 		<input class="__image-upload" type="file">

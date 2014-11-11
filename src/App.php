@@ -16,6 +16,8 @@ class App extends \samson\cms\App
 	/** Identifier */
 	protected $id = 'gallery';
 
+    private $priority = array();
+
 	/** @see \samson\core\ExternalModule::init() */
 	public function prepare( array $params = null )
 	{
@@ -84,25 +86,26 @@ class App extends \samson\cms\App
 		$upload = new \samson\upload\Upload();
 		
 		$result = array( 'status' => false );
-		
+
 		// Uploading file to server
-		if ($upload->upload($fpath, $uname, $fname)) {
+		if ($upload->upload()) {
             /** @var \samson\activerecord\material $material */
             $material = null;
 			// Check if participant has not uploaded remix yet
 			if (dbQuery('material')->MaterialID($material_id)->Active(1)->first($material)) {
 				// Create empty db record
 				$photo = new \samson\activerecord\gallery(false);
-				$photo->Name = $uname;
-				$photo->Src = url()->base().$fpath;
-				$photo->Path = dirname(url()->base().$fpath).'/';
+				$photo->Name = $upload->realName();
+				$photo->Src = $upload->name();
+				$photo->Path = dirname(url()->base() . $upload->realPath()) . '/';
 				$photo->MaterialID = $material->id;
+                $photo->size = $upload->size();
                 $photo->Active = 1;
 				$photo->save();				
 				
-				// Call scaler if it is loaded
+				// Call scale if it is loaded
 				if(class_exists('\samson\scale\Scale', false)) {
-                    m('scale')->resize($fpath, $fname);
+                    m('scale')->resize($upload->realPath(), $upload->realName());
                 }
 
 				$result['status'] = true;			
@@ -111,6 +114,28 @@ class App extends \samson\cms\App
 		
 		return $result;
 	}
+
+    public function __async_priority()
+    {
+        $result = array('status' => false);
+
+        // If we have changed priority of images
+        if (isset($_POST['ids'])) {
+            // For each received image id
+            for ($i = 0; $i < count($_POST['ids']); $i++) {
+                /** @var \samson\activerecord\gallery $photo Variable to store image info */
+                $photo = null;
+                // If we have such image in database
+                if (dbQuery('gallery')->cond('PhotoID', $_POST['ids'][$i])->first($photo)) {
+                    // Reset it's priority and save it
+                    $photo->priority = $i;
+                    $photo->save();
+                }
+            }
+        }
+//        $result['priority'] = $priorities;
+        return $result;
+    }
 	
 	/**
 	 * Render gallery images list
@@ -120,7 +145,7 @@ class App extends \samson\cms\App
 	{
 		// Get all material images
 		$items_html = '';
-		if( dbQuery('gallery')->MaterialID( $material_id )->order_by('PhotoID')->exec( $images ))foreach ( $images as $image )
+		if( dbQuery('gallery')->MaterialID( $material_id )->order_by('priority')->exec( $images ))foreach ( $images as $image )
 		{
             // Get old-way image path, remove full path to check file
             $src = str_replace(__SAMSON_BASE__, '', $image->Src);
@@ -130,10 +155,14 @@ class App extends \samson\cms\App
                 $path = $image->Path.$image->Src;
             }
 
+            //Set priority array
+            $this->priority[$image->priority] = $image->PhotoID;
+
             // Render gallery image tumb
 			$items_html .= $this->view( 'tumbs/item')
 			    ->image($image)
                 ->imgpath($path)
+                ->size($this->humanFileSize($image->size))
 			    ->material_id($material_id)
 			->output();
 		}
@@ -144,4 +173,10 @@ class App extends \samson\cms\App
 		    ->material_id($material_id)
 		->output();
 	}
+
+    public function humanFileSize($bytes, $decimals = 2) {
+        $sz = 'BKMGTP';
+        $factor = (int)(floor((strlen($bytes) - 1) / 3));
+        return sprintf("%.{$decimals}f", $bytes / pow(1024, $factor)) . @$sz[$factor];
+    }
 }
