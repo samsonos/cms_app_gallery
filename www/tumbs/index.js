@@ -3,7 +3,10 @@ var SJSGallery = function( container )
 {
 	// Cache reference
 	var o = this;
-	
+    var containerDOMElement = container.DOMElement;
+    var uploadUrl = (containerDOMElement.hasAttribute('__action_upload')) ? containerDOMElement.getAttribute('__action_upload') : 'upload/';
+    var updateUrl = (containerDOMElement.hasAttribute('__action_update')) ? containerDOMElement.getAttribute('__action_update') : 'update/';
+
 	// Safely save container object
 	o.container = s(container);
 
@@ -19,13 +22,26 @@ var SJSGallery = function( container )
 			/* File uploading finished */
 			finish: function()
 			{	
-				o.loader.show('Обновление галлереи',true); 
+				o.loader.show('Обновление галлереи',true);
 			},
 		
 			/* File contoller finished */
 			response : init
 		});
 	};
+
+    s('.scms-gallery').dropFileUpload({
+        url: uploadUrl,
+        drop: function(elem){
+            elem.css('background-color', 'inherit');
+            var btn = s('.btn-upload').DOMElement;
+            btn.parentNode.removeChild(btn);
+            o.loader.show('Обновление галлереи',true);
+        },
+        completeAll: function(){
+            s.ajax(updateUrl, init);
+        }
+    });
 	
 	/** Gallery initialization */
 	o.init = function( response )
@@ -81,6 +97,7 @@ var SJSGallery = function( container )
             cursor: "move",
             containment: "parent",
             delay: 150,
+            items: "> li:not(:last-child)",
             stop: function(event, ui) {
                 var ids = [];
                 $('.scms-gallery li').each(function(idx, item){
@@ -88,7 +105,6 @@ var SJSGallery = function( container )
                         ids[idx] = item.getAttribute('image_id');
                     }
                 });
-                s.trace(ids);
                 $.ajax({
                     url: '/gallery/priority',
                     type: 'POST',
@@ -102,6 +118,8 @@ var SJSGallery = function( container )
                 //s.ajax('/gallery/priority', )
             }
         });
+        //s.trace(s('#gallery-tab'));
+        //$('.btn-upload').sortable({ disabled: true });
 		
 	};
 	
