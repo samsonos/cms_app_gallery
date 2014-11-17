@@ -79,7 +79,7 @@ class App extends \samson\cms\App
 	 */
 	public function __async_upload( $material_id )
 	{
-		// Async responce
+		// Async response
 		s()->async(true);
 		
 		// Create object for uploading file to server
@@ -117,7 +117,7 @@ class App extends \samson\cms\App
 
     public function __async_priority()
     {
-        $result = array('status' => false);
+        $result = array('status' => true);
 
         // If we have changed priority of images
         if (isset($_POST['ids'])) {
@@ -130,8 +130,14 @@ class App extends \samson\cms\App
                     // Reset it's priority and save it
                     $photo->priority = $i;
                     $photo->save();
+                } else {
+                    $result['status'] = false;
+                    $result['message'] = 'Can not find images with specified ids!';
                 }
             }
+        } else {
+            $result['status'] = false;
+            $result['message'] = 'There are no images to sort!';
         }
 //        $result['priority'] = $priorities;
         return $result;
