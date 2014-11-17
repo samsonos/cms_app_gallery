@@ -45,13 +45,13 @@ class App extends \samson\cms\App
 			{
 				$upload_dir = \samson\upload\Upload::UPLOAD_PATH;
 				// Physycally remove file from server
-				if( file_exists( $db_image->Path )) unlink( $upload_dir.$db_image->Path );	
+				if( file_exists( $db_image->Path.$db_image->Src )) unlink( $db_image->Path.$db_image->Src );
 	
 				// Delete thumnails
 				if(class_exists('\samson\scale\Scale', false)) foreach (m('scale')->thumnails_sizes as $folder=>$params)
 				{
 					$folder_path = $upload_dir.$folder;
-					if( file_exists( $folder_path.'/'.$db_image->Path )) unlink( $folder_path.'/'.$db_image->Path );
+					if( file_exists( $folder_path.'/'.$db_image->Path.$db_image->Src )) unlink( $folder_path.'/'.$db_image->Path.$db_image->Src );
 				}	
 			}
 			
@@ -84,14 +84,10 @@ class App extends \samson\cms\App
 		// Async response
 		s()->async(true);
 
-        if (isset(AwsAdapter::$handler) && is_callable(AwsAdapter::$handler)) {
-            $dir = call_user_func(AwsAdapter::$handler, $material_id);
-        } else {
-            $dir = 'upload';
-        }
-
 		// Create object for uploading file to server
-		$upload = new \samson\upload\Upload(array(), $dir);
+		$upload = new \samson\upload\Upload();
+
+        $upload->buildPath($material_id);
 		
 		$result = array('status' => false);
 
