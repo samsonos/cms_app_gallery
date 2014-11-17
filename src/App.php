@@ -109,7 +109,7 @@ class App extends \samson\cms\App
                 if (isset(Upload::$type) && Upload::$type == 'amazon' && isset(AwsAdapter::$awsUrl)) {
                     $photo->Path = $upload->realPath().'/';
                 } else {
-                    $photo->Path = dirname(url()->base() . $upload->realPath()) . '/';
+                    $photo->Path = $upload->realPath().'/';
                 }
 
 				$photo->MaterialID = $material->id;
@@ -119,7 +119,7 @@ class App extends \samson\cms\App
 
 				// Call scale if it is loaded
 				if (class_exists('\samson\scale\Scale', false)) {
-                    m('scale')->resize($upload->realPath(), $upload->realName());
+                    m('scale')->resize($upload->fullPath(), $upload->name());
                 }
 
 				$result['status'] = true;			
