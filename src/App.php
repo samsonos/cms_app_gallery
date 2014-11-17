@@ -151,6 +151,7 @@ class App extends \samson\cms\App
 	{
 		// Get all material images
 		$items_html = '';
+        $images = array();
 		if( dbQuery('gallery')->MaterialID( $material_id )->order_by('priority')->exec( $images ))foreach ( $images as $image )
 		{
             // Get old-way image path, remove full path to check file
