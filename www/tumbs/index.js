@@ -11,7 +11,7 @@ var SJSGallery = function( container )
 	o.container = s(container);
 
 	// Create loader object
-	o.loader = new Loader( o.container.parent() );
+	//o.loader = new Loader( o.container.parent() );
 	
 	/** Gallery initialization */
 	o.init = function( response )
@@ -33,7 +33,7 @@ var SJSGallery = function( container )
 				// Check image loading
 				isImagesLoaded( s('img', o.container), function()
 				{
-					o.loader.hide();
+					//o.loader.hide();
 					
 					o.container.show();
 				});			
@@ -50,7 +50,7 @@ var SJSGallery = function( container )
 			// Ask for confirmation
 			if(confirm('Delete image?'))
 			{
-				o.loader.show('Обновление галлереи',true);
+				//o.loader.show('Обновление галлереи',true);
 				s.ajax( btn.a('href'), init );
 			}
 
@@ -89,7 +89,7 @@ var SJSGallery = function( container )
                 elem.css('background-color', 'inherit');
                 var btn = s('.btn-upload').DOMElement;
                 btn.parentNode.removeChild(btn);
-                o.loader.show('Обновление галлереи',true);
+                //o.loader.show('Обновление галлереи',true);
             },
             completeAll: function(){
                 s.ajax(updateUrl, init);
@@ -98,9 +98,9 @@ var SJSGallery = function( container )
 
         s('.btn-upload').fileUpload({
             url: uploadUrl,
-            inputSelector: '.__image-upload',
+            //inputSelector: '.__image-upload',
             start: function(){
-                o.loader.show('Обновление галлереи',true);
+                //o.loader.show('Обновление галлереи',true);
             },
             completeAll: function(){
                 s.ajax(updateUrl, init);

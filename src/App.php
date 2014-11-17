@@ -152,15 +152,19 @@ class App extends \samson\cms\App
 		// Get all material images
 		$items_html = '';
         $images = array();
-		if( dbQuery('gallery')->MaterialID( $material_id )->order_by('priority')->exec( $images ))foreach ( $images as $image )
+		if( dbQuery('gallery')->MaterialID( $material_id )->order_by('priority')->order_by('Loaded')->exec( $images ))foreach ( $images as $image )
 		{
+            // Get image size string
+            $size = ', ';
             // Get old-way image path, remove full path to check file
             $src = str_replace(__SAMSON_BASE__, '', $image->Src);
-            if (file_exists($src)) {
+            if (empty($image->Path)) {
                 $path = $image->Src;
             } else { // Use new CORRECT way
                 $path = $image->Path.$image->Src;
             }
+
+            $size = ($image->size == 0) ? '' : $size . $this->humanFileSize($image->size);
 
             //Set priority array
             $this->priority[$image->priority] = $image->PhotoID;
@@ -168,8 +172,9 @@ class App extends \samson\cms\App
             // Render gallery image tumb
 			$items_html .= $this->view( 'tumbs/item')
 			    ->image($image)
+                ->name(utf8_limit_string($image->Name, 18, '...'))
                 ->imgpath($path)
-                ->size($this->humanFileSize($image->size))
+                ->size($size)
 			    ->material_id($material_id)
 			->output();
 		}
