@@ -105,13 +105,7 @@ class App extends \samson\cms\App
 				$photo = new \samson\activerecord\gallery(false);
 				$photo->Name = $upload->realName();
 				$photo->Src = $upload->name();
-
-                if (isset(Upload::$type) && Upload::$type == 'amazon' && isset(AwsAdapter::$awsUrl)) {
-                    $photo->Path = $upload->realPath().'/';
-                } else {
-                    $photo->Path = $upload->realPath().'/';
-                }
-
+                $photo->Path = $upload->realPath().'/';
 				$photo->MaterialID = $material->id;
                 $photo->size = $upload->size();
                 $photo->Active = 1;
