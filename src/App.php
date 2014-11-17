@@ -1,5 +1,7 @@
 <?php
 namespace samson\cms\web\gallery;
+use samson\upload\AwsAdapter;
+use samson\upload\Upload;
 
 /**
  * SamsonCMS application for interacting with material gallery
@@ -79,13 +81,19 @@ class App extends \samson\cms\App
 	 */
 	public function __async_upload( $material_id )
 	{
-		// Async responce
+		// Async response
 		s()->async(true);
-		
+
+        if (isset(AwsAdapter::$handler) && is_callable(AwsAdapter::$handler)) {
+            $dir = call_user_func(AwsAdapter::$handler, $material_id);
+        } else {
+            $dir = 'upload';
+        }
+
 		// Create object for uploading file to server
-		$upload = new \samson\upload\Upload();
+		$upload = new \samson\upload\Upload(array(), $dir);
 		
-		$result = array( 'status' => false );
+		$result = array('status' => false);
 
 		// Uploading file to server
 		if ($upload->upload()) {
@@ -97,14 +105,20 @@ class App extends \samson\cms\App
 				$photo = new \samson\activerecord\gallery(false);
 				$photo->Name = $upload->realName();
 				$photo->Src = $upload->name();
-				$photo->Path = dirname(url()->base() . $upload->realPath()) . '/';
+
+                if (isset(Upload::$type) && Upload::$type == 'amazon' && isset(AwsAdapter::$awsUrl)) {
+                    $photo->Path = $upload->realPath().'/';
+                } else {
+                    $photo->Path = dirname(url()->base() . $upload->realPath()) . '/';
+                }
+
 				$photo->MaterialID = $material->id;
                 $photo->size = $upload->size();
                 $photo->Active = 1;
-				$photo->save();				
-				
+				$photo->save();
+
 				// Call scale if it is loaded
-				if(class_exists('\samson\scale\Scale', false)) {
+				if (class_exists('\samson\scale\Scale', false)) {
                     m('scale')->resize($upload->realPath(), $upload->realName());
                 }
 
