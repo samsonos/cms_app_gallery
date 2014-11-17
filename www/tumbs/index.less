@@ -1,6 +1,8 @@
 /** Base container class */
 .scms-gallery {
-	
+
+  min-height: 100%;
+
 	/* Upload list item */
 	.btn-upload {
 		float:left; 
@@ -18,5 +20,8 @@
 	.btn-delete { 
 		&:hover { text-decoration:underline; }
 	}
+  .ui-sortable-helper {
+    opacity: 0.5;
+  }
 }
 

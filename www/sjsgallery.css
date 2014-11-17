@@ -7,7 +7,7 @@
 
 
 /* Tumbnail ��� �������� ������� */
-.sjs-gallery li { display: block; margin:10px 10px !important;  float:left; list-style: none; text-align: center; }
+.sjs-gallery li { display: block; margin:10px 10px 30px 10px !important;  float:left; list-style: none; text-align: center; }
 
 /* ��������� ��� ����������� tumbnail'� ����������� */
 .sjs-gallery-tn { display: table-cell; vertical-align:middle;}

@@ -131,7 +131,7 @@ class App extends \samson\cms\App
 
     public function __async_priority()
     {
-        $result = array('status' => false);
+        $result = array('status' => true);
 
         // If we have changed priority of images
         if (isset($_POST['ids'])) {
@@ -144,8 +144,14 @@ class App extends \samson\cms\App
                     // Reset it's priority and save it
                     $photo->priority = $i;
                     $photo->save();
+                } else {
+                    $result['status'] = false;
+                    $result['message'] = 'Can not find images with specified ids!';
                 }
             }
+        } else {
+            $result['status'] = false;
+            $result['message'] = 'There are no images to sort!';
         }
 //        $result['priority'] = $priorities;
         return $result;
@@ -159,6 +165,7 @@ class App extends \samson\cms\App
 	{
 		// Get all material images
 		$items_html = '';
+        $images = array();
 		if( dbQuery('gallery')->MaterialID( $material_id )->order_by('priority')->exec( $images ))foreach ( $images as $image )
 		{
             // Get old-way image path, remove full path to check file

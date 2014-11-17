@@ -3,29 +3,15 @@ var SJSGallery = function( container )
 {
 	// Cache reference
 	var o = this;
-	
+    var containerDOMElement = container.DOMElement;
+    var uploadUrl = (containerDOMElement.hasAttribute('__action_upload')) ? containerDOMElement.getAttribute('__action_upload') : 'upload/';
+    var updateUrl = (containerDOMElement.hasAttribute('__action_update')) ? containerDOMElement.getAttribute('__action_update') : 'update/';
+
 	// Safely save container object
 	o.container = s(container);
 
 	// Create loader object
-	o.loader = new Loader( o.container.parent() );	
-	
-	/** Upload initialization */
-	o.uploadInit = function( fileField )
-	{
-		// Bind upload handler
-		uploadFileHandler( fileField,{
-			
-			/* File uploading finished */
-			finish: function()
-			{	
-				o.loader.show('Обновление галлереи',true); 
-			},
-		
-			/* File contoller finished */
-			response : init
-		});
-	};
+	o.loader = new Loader( o.container.parent() );
 	
 	/** Gallery initialization */
 	o.init = function( response )
@@ -57,10 +43,7 @@ var SJSGallery = function( container )
 				
 		// Init SamsonJS Gallery plugin on container
 		o.container.gallery();
-		
-		// Init uploader
-		o.uploadInit( s('.__image-upload') );
-		
+
 		// Bind delete event
 		s('.btn-delete',o.container).click(function(btn)
 		{
@@ -70,7 +53,7 @@ var SJSGallery = function( container )
 				o.loader.show('Обновление галлереи',true);
 				s.ajax( btn.a('href'), init );
 			}
-			
+
 		}, true, true );
 
         $('.scms-gallery').sortable({
@@ -81,6 +64,7 @@ var SJSGallery = function( container )
             cursor: "move",
             containment: "parent",
             delay: 150,
+            items: "> li:not(:last-child)",
             stop: function(event, ui) {
                 var ids = [];
                 $('.scms-gallery li').each(function(idx, item){
@@ -88,21 +72,40 @@ var SJSGallery = function( container )
                         ids[idx] = item.getAttribute('image_id');
                     }
                 });
-                s.trace(ids);
                 $.ajax({
                     url: '/gallery/priority',
                     type: 'POST',
                     async: true,
                     data: {ids:ids},
                     success: function(response){
-                        //var obj = $.parseJSON(response);
-                        //s.trace(obj.status);
                     }
                 });
-                //s.ajax('/gallery/priority', )
             }
         });
-		
+
+        s('.scms-gallery').dropFileUpload({
+            url: uploadUrl,
+            drop: function(elem){
+                elem.css('background-color', 'inherit');
+                var btn = s('.btn-upload').DOMElement;
+                btn.parentNode.removeChild(btn);
+                o.loader.show('Обновление галлереи',true);
+            },
+            completeAll: function(){
+                s.ajax(updateUrl, init);
+            }
+        });
+
+        s('.btn-upload').fileUpload({
+            url: uploadUrl,
+            inputSelector: '.__image-upload',
+            start: function(){
+                o.loader.show('Обновление галлереи',true);
+            },
+            completeAll: function(){
+                s.ajax(updateUrl, init);
+            }
+        });
 	};
 	
 	// Base init
