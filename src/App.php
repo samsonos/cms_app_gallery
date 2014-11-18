@@ -43,7 +43,7 @@ class App extends \samson\cms\App
 		{
 			if($db_image->Path != '')
 			{
-				$upload_dir = \samson\upload\Upload::UPLOAD_PATH;
+				$upload_dir = $db_image->Path;
 				// Physycally remove file from server
 				if( file_exists( $db_image->Path.$db_image->Src )) unlink( $db_image->Path.$db_image->Src );
 	
@@ -90,7 +90,7 @@ class App extends \samson\cms\App
         $upload = null;
         // Uploading file to server and path current material identifier
 		if (uploadFile($upload, array(), $material_id)) {
-            trace($upload);
+            //trace($upload);
             /** @var \samson\activerecord\material $material */
             $material = null;
 			// Check if participant has not uploaded remix yet
