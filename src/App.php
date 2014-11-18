@@ -103,6 +103,19 @@ class App extends \samson\cms\App
                 $photo->Active = 1;
 				$photo->save();
 
+                if (dbQuery('material')->cond('parent_id', $material->id)->cond('type', 2)->exec($children)) {
+                    foreach ($children as $child) {
+                        $childPhoto = new \samson\activerecord\gallery(false);
+                        $childPhoto->Name = $upload->realName();
+                        $childPhoto->Src = $upload->name();
+                        $childPhoto->Path = $upload->path();
+                        $childPhoto->MaterialID = $child->id;
+                        $childPhoto->size = $upload->size();
+                        $childPhoto->Active = 1;
+                        $childPhoto->save();
+                    }
+                }
+
 				// Call scale if it is loaded
 				if (class_exists('\samson\scale\Scale', false)) {
                     m('scale')->resize($upload->fullPath(), $upload->name());
