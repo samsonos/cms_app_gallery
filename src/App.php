@@ -84,15 +84,13 @@ class App extends \samson\cms\App
 		// Async response
 		s()->async(true);
 
-		// Create object for uploading file to server
-		$upload = new \samson\upload\Upload();
-
-        $upload->buildPath($material_id);
-		
 		$result = array('status' => false);
 
-		// Uploading file to server
-		if ($upload->upload()) {
+		/** @var \samson\upload\Upload $upload  Pointer to uploader object */
+        $upload = null;
+        // Uploading file to server and path current material identifier
+		if (uploadFile($upload, array(), $material_id)) {
+            trace($upload);
             /** @var \samson\activerecord\material $material */
             $material = null;
 			// Check if participant has not uploaded remix yet
@@ -101,7 +99,7 @@ class App extends \samson\cms\App
 				$photo = new \samson\activerecord\gallery(false);
 				$photo->Name = $upload->realName();
 				$photo->Src = $upload->name();
-                $photo->Path = $upload->realPath().'/';
+                $photo->Path = $upload->path();
 				$photo->MaterialID = $material->id;
                 $photo->size = $upload->size();
                 $photo->Active = 1;
@@ -165,6 +163,8 @@ class App extends \samson\cms\App
             } else { // Use new CORRECT way
                 $path = $image->Path.$image->Src;
             }
+
+            //trace($image->Src.'-'.$image->Path);
 
             //Set priority array
             $this->priority[$image->priority] = $image->PhotoID;
