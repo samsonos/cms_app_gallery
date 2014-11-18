@@ -1,7 +1,5 @@
 <?php
 namespace samson\cms\web\gallery;
-use samson\upload\AwsAdapter;
-use samson\upload\Upload;
 
 /**
  * SamsonCMS application for interacting with material gallery
@@ -99,7 +97,7 @@ class App extends \samson\cms\App
 				$photo = new \samson\activerecord\gallery(false);
 				$photo->Name = $upload->realName();
 				$photo->Src = $upload->name();
-                $photo->Path = $upload->path();
+                $photo->Path = '/cms/'.$upload->path();
 				$photo->MaterialID = $material->id;
                 $photo->size = $upload->size();
                 $photo->Active = 1;
