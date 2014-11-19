@@ -178,7 +178,7 @@ class App extends \samson\cms\App
 		// Get all material images
 		$items_html = '';
         $images = array();
-		if(dbQuery('gallery')->cond('MaterialID', $material_id )->order_by('priority')->order_by('Loaded')->exec($images)) {
+		if(dbQuery('gallery')->cond('MaterialID', $material_id )->order_by('priority')->exec($images)) {
             foreach ($images as $image) {
                 // Get image size string
                 $size = ', ';
