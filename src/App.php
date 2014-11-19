@@ -189,6 +189,7 @@ class App extends \samson\cms\App
                     $path = $image->Path . $image->Src;
                 }
 
+                // Try to load image, if it is not found, no-image pic will be shown
                 $ch = curl_init(url_build($path));
                 curl_setopt($ch, CURLOPT_NOBODY, true);
                 curl_setopt($ch, CURLOPT_TIMEOUT, 2);
@@ -199,6 +200,7 @@ class App extends \samson\cms\App
                 }
                 curl_close($ch);
 
+                // set image size string representation, if it is not 0
                 $size = ($image->size == 0) ? '' : $size . $this->humanFileSize($image->size);
 
                 //Set priority array
@@ -206,7 +208,8 @@ class App extends \samson\cms\App
 
                 // Render gallery image tumb
                 $items_html .= $this->view('tumbs/item')
-                    ->set('image', $image)
+                    ->set('fullName', $image->Name)
+                    ->set('id', $image->id)
                     ->set('name', utf8_limit_string($image->Name, 18, '...'))
                     ->set('imgpath', $path)
                     ->set('size', $size)
