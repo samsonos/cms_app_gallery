@@ -2,8 +2,9 @@
 .sjs-gallery ul { display: block; margin:0 auto;  }
 
 /* ��������� ������ tumbnail�� ��� ��������, ��� �� ��� ���������� � ���� ������� */
-.sjs-gallery li,
-.sjs-gallery-tn { width:210px; height:160px;  }
+.sjs-gallery li { width:212px; height:160px;  }
+
+.sjs-gallery-tn { width:210px; height:160px; border: 1px solid rgba(0, 0, 0, 0.2) }
 
 
 /* Tumbnail ��� �������� ������� */
@@ -11,10 +12,10 @@
 
 /* ��������� ��� ����������� tumbnail'� ����������� */
 .sjs-gallery-tn { display: table-cell; vertical-align:middle;}
-.sjs-gallery-tn img { border:5px solid white; background-color:#F0EDEE; box-shadow: 0px 0px 10px rgba(0,0,0,50); }
+.sjs-gallery-tn img { /*border:5px solid white;*/ background-color:#F0EDEE; /*box-shadow: 0px 0px 10px rgba(0,0,0,50);*/ }
 
 /* ������ �������� ������� ��� �� �� ���� �������� */
-.sjs-gallery li img { display:none; margin:0 auto; display:block; }
+.sjs-gallery li img { margin:0 auto; display:block; }
 
 /* "���������" ������� ��� ������ �������� �� ������� */
 .sjs-gallery-wraper 
