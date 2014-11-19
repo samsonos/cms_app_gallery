@@ -41,15 +41,15 @@ class App extends \samson\cms\App
 		{
 			if($db_image->Path != '')
 			{
-				$upload_dir = \samson\upload\Upload::UPLOAD_PATH;
+				$upload_dir = $db_image->Path;
 				// Physycally remove file from server
-				if( file_exists( $db_image->Path )) unlink( $upload_dir.$db_image->Path );	
+				if( file_exists( $db_image->Path.$db_image->Src )) unlink( $db_image->Path.$db_image->Src );
 	
 				// Delete thumnails
 				if(class_exists('\samson\scale\Scale', false)) foreach (m('scale')->thumnails_sizes as $folder=>$params)
 				{
 					$folder_path = $upload_dir.$folder;
-					if( file_exists( $folder_path.'/'.$db_image->Path )) unlink( $folder_path.'/'.$db_image->Path );
+					if( file_exists( $folder_path.'/'.$db_image->Path.$db_image->Src )) unlink( $folder_path.'/'.$db_image->Path.$db_image->Src );
 				}	
 			}
 			
@@ -81,14 +81,14 @@ class App extends \samson\cms\App
 	{
 		// Async response
 		s()->async(true);
-		
-		// Create object for uploading file to server
-		$upload = new \samson\upload\Upload();
-		
-		$result = array( 'status' => false );
 
-		// Uploading file to server
-		if ($upload->upload()) {
+		$result = array('status' => false);
+
+		/** @var \samson\upload\Upload $upload  Pointer to uploader object */
+        $upload = null;
+        // Uploading file to server and path current material identifier
+		if (uploadFile($upload, array(), $material_id)) {
+            //trace($upload);
             /** @var \samson\activerecord\material $material */
             $material = null;
 			// Check if participant has not uploaded remix yet
@@ -97,15 +97,28 @@ class App extends \samson\cms\App
 				$photo = new \samson\activerecord\gallery(false);
 				$photo->Name = $upload->realName();
 				$photo->Src = $upload->name();
-				$photo->Path = dirname(url()->base() . $upload->realPath()) . '/';
+                $photo->Path = $upload->path();
 				$photo->MaterialID = $material->id;
                 $photo->size = $upload->size();
                 $photo->Active = 1;
-				$photo->save();				
-				
+				$photo->save();
+
+                if (dbQuery('material')->cond('parent_id', $material->id)->cond('type', 2)->exec($children)) {
+                    foreach ($children as $child) {
+                        $childPhoto = new \samson\activerecord\gallery(false);
+                        $childPhoto->Name = $upload->realName();
+                        $childPhoto->Src = $upload->name();
+                        $childPhoto->Path = $upload->path();
+                        $childPhoto->MaterialID = $child->id;
+                        $childPhoto->size = $upload->size();
+                        $childPhoto->Active = 1;
+                        $childPhoto->save();
+                    }
+                }
+
 				// Call scale if it is loaded
-				if(class_exists('\samson\scale\Scale', false)) {
-                    m('scale')->resize($upload->realPath(), $upload->realName());
+				if (class_exists('\samson\scale\Scale', false)) {
+                    m('scale')->resize($upload->fullPath(), $upload->name());
                 }
 
 				$result['status'] = true;			
