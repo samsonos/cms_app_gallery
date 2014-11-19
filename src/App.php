@@ -18,12 +18,15 @@ class App extends \samson\cms\App
 
     private $priority = array();
 
-	/** @see \samson\core\ExternalModule::init() */
-	public function prepare( array $params = null )
+    /** @see \samson\core\ExternalModule::init()
+     * @param array $params Parameters
+     * @return bool|void Returns module check result
+     */
+	public function prepare(array $params = null)
 	{
         // TODO: Change this logic to make tab loading more simple
 		// Create new gallery tab object to load it 
-		class_exists( ns_classname('MaterialTab','samson\cms\web\gallery') );
+		class_exists(\samson\core\AutoLoader::className('MaterialTab','samson\cms\web\gallery'));
 	}
 	
 	/**
@@ -35,22 +38,30 @@ class App extends \samson\cms\App
 	{
 		// Async response
 		$result = array( 'status' => false );
+
+        /** @var \samson\activerecord\gallery $db_image */
+        $db_image = null;
 		
 		// Find gallery record in DB
-		if( dbQuery('gallery')->id( $id )->first( $db_image ))
-		{
-			if($db_image->Path != '')
-			{
+		if (dbQuery('gallery')->id($id)->first($db_image)) {
+			if ($db_image->Path != '') {
 				$upload_dir = $db_image->Path;
-				// Physycally remove file from server
-				if( file_exists( $db_image->Path.$db_image->Src )) unlink( $db_image->Path.$db_image->Src );
-	
-				// Delete thumnails
-				if(class_exists('\samson\scale\Scale', false)) foreach (m('scale')->thumnails_sizes as $folder=>$params)
-				{
-					$folder_path = $upload_dir.$folder;
-					if( file_exists( $folder_path.'/'.$db_image->Path.$db_image->Src )) unlink( $folder_path.'/'.$db_image->Path.$db_image->Src );
-				}	
+				// Physically remove file from server
+				if (file_exists($db_image->Path.$db_image->Src)) {
+                    unlink($db_image->Path.$db_image->Src);
+                }
+
+                /** @var \samson\scale\Scale $scale */
+                $scale = m('scale');
+				// Delete thumbnails
+				if (class_exists('\samson\scale\Scale', false)) {
+                    foreach ($scale->thumnails_sizes as $folder=>$params) {
+                        $folder_path = $upload_dir.$folder;
+                        if (file_exists($folder_path.'/'.$db_image->Path.$db_image->Src)) {
+                            unlink($folder_path.'/'.$db_image->Path.$db_image->Src);
+                        }
+                    }
+                }
 			}
 			
 			// Remove record from DB
@@ -77,7 +88,7 @@ class App extends \samson\cms\App
 	 * @param string $material_id Material identifier 
 	 * @return array Async response array
 	 */
-	public function __async_upload( $material_id )
+	public function __async_upload($material_id)
 	{
 		// Async response
 		s()->async(true);
@@ -92,7 +103,7 @@ class App extends \samson\cms\App
             /** @var \samson\activerecord\material $material */
             $material = null;
 			// Check if participant has not uploaded remix yet
-			if (dbQuery('material')->MaterialID($material_id)->Active(1)->first($material)) {
+			if (dbQuery('material')->cond('MaterialID', $material_id)->cond('Active', 1)->first($material)) {
 				// Create empty db record
 				$photo = new \samson\activerecord\gallery(false);
 				$photo->Name = $upload->realName();
@@ -118,7 +129,9 @@ class App extends \samson\cms\App
 
 				// Call scale if it is loaded
 				if (class_exists('\samson\scale\Scale', false)) {
-                    m('scale')->resize($upload->fullPath(), $upload->name());
+                    /** @var \samson\scale\Scale $scale */
+                    $scale = m('scale');
+                    $scale->resize($upload->fullPath(), $upload->name());
                 }
 
 				$result['status'] = true;			
@@ -152,50 +165,60 @@ class App extends \samson\cms\App
             $result['status'] = false;
             $result['message'] = 'There are no images to sort!';
         }
-//        $result['priority'] = $priorities;
         return $result;
     }
 	
 	/**
 	 * Render gallery images list
 	 * @param string $material_id Material identifier
+     * @return string html representation of image list
 	 */
-	public function html_list( $material_id )
+	public function html_list($material_id)
 	{
 		// Get all material images
 		$items_html = '';
         $images = array();
-		if( dbQuery('gallery')->MaterialID( $material_id )->order_by('priority')->order_by('Loaded')->exec( $images ))foreach ( $images as $image )
-		{
-            // Get image size string
-            $size = ', ';
-            // Get old-way image path, remove full path to check file
-            $src = str_replace(__SAMSON_BASE__, '', $image->Src);
-            if (empty($image->Path)) {
-                $path = $image->Src;
-            } else { // Use new CORRECT way
-                $path = $image->Path.$image->Src;
+		if(dbQuery('gallery')->cond('MaterialID', $material_id )->order_by('priority')->order_by('Loaded')->exec($images)) {
+            foreach ($images as $image) {
+                // Get image size string
+                $size = ', ';
+                // Get old-way image path, remove full path to check file
+                if (empty($image->Path)) {
+                    $path = $image->Src;
+                } else { // Use new CORRECT way
+                    $path = $image->Path . $image->Src;
+                }
+
+                $ch = curl_init(url_build($path));
+                curl_setopt($ch, CURLOPT_NOBODY, true);
+                curl_setopt($ch, CURLOPT_TIMEOUT, 2);
+                curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 2);
+                curl_exec($ch);
+                if (curl_getinfo($ch, CURLINFO_HTTP_CODE) != 200) {
+                    $path = 'img/no-img.png';
+                }
+                curl_close($ch);
+
+                $size = ($image->size == 0) ? '' : $size . $this->humanFileSize($image->size);
+
+                //Set priority array
+                $this->priority[$image->priority] = $image->PhotoID;
+
+                // Render gallery image tumb
+                $items_html .= $this->view('tumbs/item')
+                    ->set('image', $image)
+                    ->set('name', utf8_limit_string($image->Name, 18, '...'))
+                    ->set('imgpath', $path)
+                    ->set('size', $size)
+                    ->set('material_id', $material_id)
+                    ->output();
             }
-
-            $size = ($image->size == 0) ? '' : $size . $this->humanFileSize($image->size);
-
-            //Set priority array
-            $this->priority[$image->priority] = $image->PhotoID;
-
-            // Render gallery image tumb
-			$items_html .= $this->view( 'tumbs/item')
-			    ->image($image)
-                ->name(utf8_limit_string($image->Name, 18, '...'))
-                ->imgpath($path)
-                ->size($size)
-			    ->material_id($material_id)
-			->output();
-		}
+        }
 	
 		// Render content into inner content html
 		return $this->view( 'tumbs/index' )
-		    ->images( $items_html )
-		    ->material_id($material_id)
+		    ->set('images', $items_html )
+		    ->set('material_id', $material_id)
 		->output();
 	}
 
