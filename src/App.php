@@ -206,11 +206,11 @@ class App extends \samson\cms\App
 
                 // Render gallery image tumb
                 $items_html .= $this->view('tumbs/item')
-                    ->set('image', $image)
                     ->set('name', utf8_limit_string($image->Name, 18, '...'))
                     ->set('imgpath', $path)
                     ->set('size', $size)
                     ->set('material_id', $material_id)
+					->image($image)
                     ->output();
             }
         }
