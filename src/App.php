@@ -131,7 +131,7 @@ class App extends \samson\cms\App
 				if (class_exists('\samson\scale\Scale', false)) {
                     /** @var \samson\scale\Scale $scale */
                     $scale = m('scale');
-                    $scale->resize($upload->fullPath(), $upload->name());
+                    $scale->resize($upload->fullPath(), $upload->name(), $upload->uploadDir);
                 }
 
 				$result['status'] = true;			
@@ -189,7 +189,7 @@ class App extends \samson\cms\App
                     $path = $image->Path . $image->Src;
                 }
 
-                $ch = curl_init(url_build($path));
+                /*$ch = curl_init(url_build($path));
                 curl_setopt($ch, CURLOPT_NOBODY, true);
                 curl_setopt($ch, CURLOPT_TIMEOUT, 2);
                 curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 2);
@@ -197,7 +197,7 @@ class App extends \samson\cms\App
                 if (curl_getinfo($ch, CURLINFO_HTTP_CODE) != 200) {
                     $path = 'img/no-img.png';
                 }
-                curl_close($ch);
+                curl_close($ch);*/
 
                 $size = ($image->size == 0) ? '' : $size . $this->humanFileSize($image->size);
 
