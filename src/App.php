@@ -128,11 +128,12 @@ class App extends \samson\cms\App
                 }
 
 				// Call scale if it is loaded
-				if (class_exists('\samson\scale\Scale', false)) {
+				if (class_exists('\samson\scale\ScaleController', false)) {
                     /** @var \samson\scale\Scale $scale */
                     $scale = m('scale');
                     $scale->resize($upload->fullPath(), $upload->name(), $upload->uploadDir);
                 }
+
 
 				$result['status'] = true;			
 			}
