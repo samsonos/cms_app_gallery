@@ -1,0 +1,42 @@
+<div class="__image_editor">
+    <div class="inner_block">
+        <div class="__image_container">
+            <img src="<?php v('path') ?>">
+        </div>
+        <p class="__image_name"><?php v('image_Name') ?></p>
+        <div class="__image_editor_panel">
+            <div class="__image_editor_panel_row">
+                <label>
+                    Zoom:
+                    <input type="number" class="__image_editor_input __image_editor_input_zoom" value="0.1" min="0.01" max="3.0" step="0.1" />
+                </label>
+                <div class="__image_editor_btn __image_editor_btn_zoom_in icon-zoom-in" title="<?php t('Увеличить') ?>"></div>
+                <div class="__image_editor_btn __image_editor_btn_zoom_out icon-zoom-out" title="<?php t('Уменьшить') ?>"></div>
+                <label>
+                    <?php t('Угол:') ?>
+                    <input type="number" class="__image_editor_input __image_editor_input_degree" value="90" min="1" max="180" step="5" />
+                </label>
+                <div class="__image_editor_btn __image_editor_btn_rotate_left icon-rotate-left" title="<?php t('Повернуть влево') ?>"></div>
+                <div class="__image_editor_btn __image_editor_btn_rotate_right icon-rotate-right" title="<?php t('Повернуть вправо') ?>"></div>
+            </div>
+            <div class="__image_editor_panel_row">
+                <label>
+                    <?php t('Ширина:') ?>
+                    <input type="number" class="__image_editor_input __image_editor_width" value="100" min="1" />
+                </label>
+                <label>
+                    <?php t('Высота:') ?>
+                    <input type="number" class="__image_editor_input __image_editor_height" value="100" min="1" />
+                </label>
+                <label>
+                    <?php t('Соотношение:') ?>
+                    <input type="number" class="__image_editor_input __image_editor_aspect_ratio" value="0.5" disabled />
+                </label>
+                <p class="__image_editor_btn __image_editor_btn_confirm"><?php t('Применить') ?></p>
+            </div>
+            <div class="__image_editor_panel_row clearfix">
+                <a class="__image_editor_btn __image_editor_btn_save"><?php t('Сохранить') ?></a>
+            </div>
+        </div>
+    </div>
+</div>

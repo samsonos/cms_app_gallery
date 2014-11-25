@@ -56,6 +56,98 @@ var SJSGallery = function( container )
 
 		}, true, true );
 
+        s('.btn-edit', o.container).click(function(btn){
+            s.ajax(btn.a('href'), function(response){
+                if (response) try {
+                    response = JSON.parse(response);
+                    if (response.html) {
+                        var editor = s(response.html);
+                        editor.css('display', 'none');
+                        editor.appendTo(s('body'));
+                        var tb = tinybox('.__image_editor', true, true, true);
+                        tb.show();
+                        var image = $('.__image_container > img');
+                        image.cropper({
+                            dashed:false,
+                            zoomable: false,
+                            built: function(){
+                                $('.cropper-container').css('top', '0px');
+                                $('img.cropper-invisible').css('display', 'none');
+
+                                // On zoom In button click
+                                var timeoutId = 0;
+                                $('.__image_editor_btn_zoom_in').mousedown(function(){
+                                    var zoom = $('.__image_editor_input_zoom').val();
+                                    image.cropper('zoom', zoom);
+                                    timeoutId = setInterval(function(){
+                                        image.cropper('zoom', zoom);
+                                    }, 300);
+                                }).bind('mouseup mouseleave', function() {
+                                    clearTimeout(timeoutId);
+                                });
+
+
+                                // On zoom out button click
+                                $('.__image_editor_btn_zoom_out').mousedown(function(){
+                                    var zoom = $('.__image_editor_input_zoom').val();
+                                    image.cropper('zoom', -zoom);
+                                    timeoutId = setInterval(function(){
+                                        image.cropper('zoom', -zoom);
+                                    }, 300);
+                                }).bind('mouseup mouseleave', function() {
+                                    clearTimeout(timeoutId);
+                                });
+
+                                // On rotate left button click
+                                $('.__image_editor_btn_rotate_left').click(function(){
+                                    var angle = $('.__image_editor_input_degree').val();
+                                    image.cropper('rotate', -angle);
+                                });
+
+                                // On rotate right button click
+                                $('.__image_editor_btn_rotate_right').click(function(){
+                                    var angle = $('.__image_editor_input_degree').val();
+                                    image.cropper('rotate', angle);
+                                });
+
+                                // On "Применить" button click
+                                $('.__image_editor_btn_confirm').click(function(){
+                                    var width = $('.__image_editor_width').val();
+                                    var height = $('.__image_editor_height').val();
+                                    var aspectRatio = $('.__image_editor_aspect_ratio').val();
+                                    image.cropper('setData', {width: width, height: height});
+                                })
+                            },
+                            done: function(data){
+                                $('.__image_editor_width').val(data.width);
+                                $('.__image_editor_height').val(data.height);
+                                $('.__image_editor_aspect_ratio').val(data.width/data.height);
+                            }
+                        });
+                    } else {
+                        alert('Can\'t find image!');
+                    }
+                } catch (e) {
+                    console.log('Can\'t load editor');
+                }
+            });
+            //var imageSrc = $('img', e.target.parentNode).attr('src');
+            //console.log(imageSrc);
+            //$('body').append('<div class="__cropper_container"><img></div>');
+            //var container = $('.__cropper_container');
+            //container.width(1000);
+            //container.height(600);
+            //var image = $('img', container);
+            //image.attr('src', imageSrc);
+            //image.cropper({
+            //    //aspectRatio: 16 / 9,
+            //    dashed: false,
+            //    zoomable: false
+            //});
+
+            return false;
+        });
+
         $('.scms-gallery').sortable({
             axis: "x,y",
             revert: true,

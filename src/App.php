@@ -134,7 +134,7 @@ class App extends \samson\cms\App
                     $scale->resize($upload->fullPath(), $upload->name());
                 }
 
-				$result['status'] = true;			
+				$result['status'] = true;
 			}
 		}
 		
@@ -164,6 +164,40 @@ class App extends \samson\cms\App
         } else {
             $result['status'] = false;
             $result['message'] = 'There are no images to sort!';
+        }
+        return $result;
+    }
+
+    /**
+     * Asynchronous function to get image editor
+     * @param int $imageId Image identifier to insert into editor
+     * @return array Result array
+     */
+    public function __async_edit($imageId)
+    {
+        /** @var array $result Result of asynchronous controller */
+        $result = array('status' => false);
+        /** @var \samson\activerecord\gallery $image Image to insert into editor */
+        $image = null;
+        if (dbQuery('gallery')->cond('PhotoID', $imageId)->first($image)) {
+
+            $path = $image->Path . $image->Src;
+
+            // If there is image for this path
+            $ch = curl_init(url_build($path));
+            curl_setopt($ch, CURLOPT_NOBODY, true);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 2);
+            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 2);
+            curl_exec($ch);
+            if (curl_getinfo($ch, CURLINFO_HTTP_CODE) == 200) {
+                $result['status'] = true;
+                $result['html'] = $this->view('editor/index')
+                    ->set($image, 'image')
+                    ->set('path', $path)
+                    ->output();
+            }
+            curl_close($ch);
+
         }
         return $result;
     }

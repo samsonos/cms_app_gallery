@@ -1,0 +1,163 @@
+.__image_editor {
+  background: #FFFFFF;
+  width: 1000px;
+  height: 96%;
+  overflow: hidden;
+  border: 10px solid #FFFFFF;
+
+  .inner_block {
+    position: absolute;
+    top: 0px;
+    bottom: 0px;
+    left: 0px;
+    right: -17px;
+    overflow: auto;
+    .__image_container {
+      position: relative;
+      width: 960px;
+      margin: 10px;
+      img {
+        width: auto;
+      }
+
+      .cropper-container {
+        height: 90%;
+        left: 0px;
+        top: 0px;
+      }
+    }
+    .__image_name {
+      text-align: center;
+      color: #7B7B7B;
+      font-family: "Trebuchet MS";
+      font-size: 18px;
+      font-weight: bold;
+      margin: 10px 0px;
+      padding: 10px 0px 20px;
+      border-bottom: 1px solid grey;
+    }
+
+    input[type='number'] {
+      font-family: Tahoma;
+      font-size: 15px;
+      margin: 2px;
+      padding: 5px;
+      border-radius: 2px;
+      border: 1px solid rgba(0, 0, 0, 0.2);
+    }
+    .__image_editor_panel {
+      .__image_editor_panel_row {
+        border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+        padding: 10px 0px 10px 10px;
+        &:last-of-type {
+          border-bottom: none;
+        }
+        label {
+          margin: 0px 0px 0px 20px;
+          font-family: Tahoma;
+          font-size: 13px;
+        }
+        input {
+          &.__image_editor_input {
+            &.__image_editor_input_zoom {
+            }
+            &.__image_editor_input_degree {
+            }
+            &.__image_editor_width {
+              width: 80px;
+            }
+            &.__image_editor_height {
+              width: 80px;
+            }
+            &.__image_editor_aspect_ratio {
+              width: 160px;
+            }
+          }
+        }
+        .__image_editor_btn {
+          font-family: "Trebuchet MS";
+          width: 16px;
+          height: 16px;
+          display: inline-block;
+          cursor: pointer;
+          &.__image_editor_btn_confirm {
+            margin-left: 20px;
+            width: auto;
+            height: auto;
+            background: rgba(51,102,255,0.6);;
+            background-image: -webkit-linear-gradient(top, rgba(51,102,255,0.6), rgba(51,102,255,0.8));
+            background-image: -moz-linear-gradient(top, rgba(51,102,255,0.6), rgba(51,102,255,0.8));
+            background-image: -ms-linear-gradient(top, rgba(51,102,255,0.6), rgba(51,102,255,0.8));
+            background-image: -o-linear-gradient(top, rgba(51,102,255,0.6), rgba(51,102,255,0.8));
+            background-image: linear-gradient(to bottom, rgba(51,102,255,0.6), rgba(51,102,255,0.8));
+            -webkit-border-radius: 2;
+            -moz-border-radius: 2;
+            border-radius: 2px;
+            text-shadow: 1px 1px 3px #666666;
+            -webkit-box-shadow: 0px 1px 3px #666666;
+            -moz-box-shadow: 0px 1px 3px #666666;
+            box-shadow: 0px 1px 3px #666666;
+            color: #ffffff;
+            font-size: 18px;
+            padding: 5px 10px;
+            &:hover {
+              background: rgba(51,102,255,0.7);
+              background-image: -webkit-linear-gradient(top, rgba(51,102,255,0.7), rgba(51,102,255,0.9));
+              background-image: -moz-linear-gradient(top, rgba(51,102,255,0.7), rgba(51,102,255,0.9));
+              background-image: -ms-linear-gradient(top, rgba(51,102,255,0.7), rgba(51,102,255,0.9));
+              background-image: -o-linear-gradient(top, rgba(51,102,255,0.7), rgba(51,102,255,0.9));
+              background-image: linear-gradient(to bottom, rgba(51,102,255,0.7), rgba(51,102,255,0.9));
+            }
+            &:active {
+              background: rgba(51,102,255,0.8);
+              background-image: -webkit-linear-gradient(top, rgba(51,102,255,0.8), rgba(51,102,255,1));
+              background-image: -moz-linear-gradient(top, rgba(51,102,255,0.8), rgba(51,102,255,1));
+              background-image: -ms-linear-gradient(top, rgba(51,102,255,0.8), rgba(51,102,255,1));
+              background-image: -o-linear-gradient(top, rgba(51,102,255,0.8), rgba(51,102,255,1));
+              background-image: linear-gradient(to bottom, rgba(51,102,255,0.8), rgba(51,102,255,1));
+            }
+          }
+          &.__image_editor_btn_save{
+            float: right;
+            margin: 20px 40px 20px 0px;
+            width: auto;
+            height: auto;
+            background: rgba(100, 200, 54, 0.6);
+            background-image: -webkit-linear-gradient(top, rgba(100, 200, 54, 0.6), rgba(100, 200, 54, 0.8));
+            background-image: -moz-linear-gradient(top, rgba(100, 200, 54, 0.6), rgba(100, 200, 54, 0.8));
+            background-image: -ms-linear-gradient(top, rgba(100, 200, 54, 0.6), rgba(100, 200, 54, 0.8));
+            background-image: -o-linear-gradient(top, rgba(100, 200, 54, 0.6), rgba(100, 200, 54, 0.8));
+            background-image: linear-gradient(to bottom, rgba(100, 200, 54, 0.6), rgba(100, 200, 54, 0.8));
+            -webkit-border-radius: 2;
+            -moz-border-radius: 2;
+            border-radius: 2px;
+            text-shadow: 1px 1px 3px #666666;
+            -webkit-box-shadow: 0px 1px 3px #666666;
+            -moz-box-shadow: 0px 1px 3px #666666;
+            box-shadow: 0px 1px 3px #666666;
+            color: #ffffff;
+            font-size: 18px;
+            padding: 5px 10px;
+
+            &:hover {
+              background: rgba(100, 200, 54, 0.7);
+              background-image: -webkit-linear-gradient(top, rgba(100, 200, 54, 0.7), rgba(100, 200, 54, 0.9));
+              background-image: -moz-linear-gradient(top, rgba(100, 200, 54, 0.7), rgba(100, 200, 54, 0.9));
+              background-image: -ms-linear-gradient(top, rgba(100, 200, 54, 0.7), rgba(100, 200, 54, 0.9));
+              background-image: -o-linear-gradient(top, rgba(100, 200, 54, 0.7), rgba(100, 200, 54, 0.9));
+              background-image: linear-gradient(to bottom, rgba(100, 200, 54, 0.7), rgba(100, 200, 54, 0.9));
+            }
+            &:active {
+              background: rgba(100, 200, 54, 0.8);
+              background-image: -webkit-linear-gradient(top, rgba(100, 200, 54, 0.8), rgba(100, 200, 54, 1));
+              background-image: -moz-linear-gradient(top, rgba(100, 200, 54, 0.8), rgba(100, 200, 54, 1));
+              background-image: -ms-linear-gradient(top, rgba(100, 200, 54, 0.8), rgba(100, 200, 54, 1));
+              background-image: -o-linear-gradient(top, rgba(100, 200, 54, 0.8), rgba(100, 200, 54, 1));
+              background-image: linear-gradient(to bottom, rgba(100, 200, 54, 0.8), rgba(100, 200, 54, 1));
+            }
+          }
+        }
+      }
+    }
+  }
+}
