@@ -74,6 +74,11 @@ var SJSGallery = function( container )
                                 $('.cropper-container').css('top', '0px');
                                 $('img.cropper-invisible').css('display', 'none');
 
+                                // Disable text highlighting on buttons
+                                $('.__image_editor_btn').mousedown(function(){
+                                    return false;
+                                });
+
                                 // On zoom In button click
                                 var timeoutId = 0;
                                 $('.__image_editor_btn_zoom_in').mousedown(function(){
@@ -82,6 +87,7 @@ var SJSGallery = function( container )
                                     timeoutId = setInterval(function(){
                                         image.cropper('zoom', zoom);
                                     }, 300);
+                                    return false;
                                 }).bind('mouseup mouseleave', function() {
                                     clearTimeout(timeoutId);
                                 });
@@ -94,6 +100,7 @@ var SJSGallery = function( container )
                                     timeoutId = setInterval(function(){
                                         image.cropper('zoom', -zoom);
                                     }, 300);
+                                    return false;
                                 }).bind('mouseup mouseleave', function() {
                                     clearTimeout(timeoutId);
                                 });
@@ -116,7 +123,8 @@ var SJSGallery = function( container )
                                     var height = $('.__image_editor_height').val();
                                     var aspectRatio = $('.__image_editor_aspect_ratio').val();
                                     image.cropper('setData', {width: width, height: height});
-                                })
+                                });
+                                
                             },
                             done: function(data){
                                 $('.__image_editor_width').val(data.width);
