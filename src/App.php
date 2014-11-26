@@ -7,112 +7,110 @@ namespace samson\cms\web\gallery;
  */
 class App extends \samson\cms\App
 {
-	/** Application name */
-	public $name = 'Галлерея';
-	
-	/** Hide application access from main menu */
-	public $hide = true;
-	
-	/** Identifier */
-	protected $id = 'gallery';
+    /** Application name */
+    public $name = 'Галлерея';
+
+    /** Hide application access from main menu */
+    public $hide = true;
+
+    /** Identifier */
+    protected $id = 'gallery';
 
     private $priority = array();
 
     /** @see \samson\core\ExternalModule::init()
-     * @param array $params Parameters
      * @return bool|void Returns module check result
      */
-	public function prepare(array $params = null)
-	{
+    public function prepare()
+    {
         // TODO: Change this logic to make tab loading more simple
-		// Create new gallery tab object to load it 
-		class_exists(\samson\core\AutoLoader::className('MaterialTab','samson\cms\web\gallery'));
-	}
-	
-	/**
-	 * Controller for deleting material image from gallery 
-	 * @param string $id Gallery Image identifier
-	 * @return array Async response array
-	 */
-	public function __async_delete( $id )
-	{
-		// Async response
-		$result = array( 'status' => false );
+        // Create new gallery tab object to load it
+        class_exists(\samson\core\AutoLoader::className('MaterialTab', 'samson\cms\web\gallery'));
+    }
+
+    /**
+     * Controller for deleting material image from gallery
+     * @param string $id Gallery Image identifier
+     * @return array Async response array
+     */
+    public function __async_delete($id)
+    {
+        // Async response
+        $result = array( 'status' => false );
 
         /** @var \samson\activerecord\gallery $db_image */
         $db_image = null;
-		
-		// Find gallery record in DB
-		if (dbQuery('gallery')->id($id)->first($db_image)) {
-			if ($db_image->Path != '') {
-				$upload_dir = $db_image->Path;
-				// Physically remove file from server
-				if (file_exists($db_image->Path.$db_image->Src)) {
+
+        // Find gallery record in DB
+        if (dbQuery('gallery')->id($id)->first($db_image)) {
+            if ($db_image->Path != '') {
+                $upload_dir = $db_image->Path;
+                // Physically remove file from server
+                if (file_exists($db_image->Path.$db_image->Src)) {
                     unlink($db_image->Path.$db_image->Src);
                 }
 
                 /** @var \samson\scale\Scale $scale */
                 $scale = m('scale');
-				// Delete thumbnails
-				if (class_exists('\samson\scale\Scale', false)) {
-                    foreach ($scale->thumnails_sizes as $folder=>$params) {
+                // Delete thumbnails
+                if (class_exists('\samson\scale\Scale', false)) {
+                    foreach (array_keys($scale->thumnails_sizes) as $folder) {
                         $folder_path = $upload_dir.$folder;
                         if (file_exists($folder_path.'/'.$db_image->Path.$db_image->Src)) {
                             unlink($folder_path.'/'.$db_image->Path.$db_image->Src);
                         }
                     }
                 }
-			}
-			
-			// Remove record from DB
-			$db_image->delete();				
+            }
 
-			$result['status'] = true;
-		}
-		
-		return $result;
-	}
-	
-	/**
+            // Remove record from DB
+            $db_image->delete();
+
+            $result['status'] = true;
+        }
+
+        return $result;
+    }
+
+    /**
 	 * Controller for rendering gallery images list
-	 * @param string $material_id Material identifier 
+	 * @param string $materialId Material identifier
 	 * @return array Async response array
 	 */
-	public function __async_update( $material_id )
-	{				
-		return array('status' => true, 'html' => $this->html_list($material_id));
-	}
-	
-	/**
+    public function __async_update($materialId)
+    {
+        return array('status' => true, 'html' => $this->html_list($materialId));
+    }
+
+    /**
 	 * Controller for image upload
 	 * @param string $material_id Material identifier 
 	 * @return array Async response array
 	 */
-	public function __async_upload($material_id)
-	{
-		// Async response
-		s()->async(true);
+    public function __async_upload($material_id)
+    {
+        // Async response
+        s()->async(true);
 
-		$result = array('status' => false);
+        $result = array('status' => false);
 
-		/** @var \samson\upload\Upload $upload  Pointer to uploader object */
+        /** @var \samson\upload\Upload $upload  Pointer to uploader object */
         $upload = null;
         // Uploading file to server and path current material identifier
-		if (uploadFile($upload, array(), $material_id)) {
-            //trace($upload);
+        if (uploadFile($upload, array(), $material_id)) {
             /** @var \samson\activerecord\material $material */
             $material = null;
-			// Check if participant has not uploaded remix yet
-			if (dbQuery('material')->cond('MaterialID', $material_id)->cond('Active', 1)->first($material)) {
-				// Create empty db record
-				$photo = new \samson\activerecord\gallery(false);
-				$photo->Name = $upload->realName();
-				$photo->Src = $upload->name();
+            // Check if participant has not uploaded remix yet
+            if (dbQuery('material')->cond('MaterialID', $material_id)->cond('Active', 1)->first($material)) {
+                // Create empty db record
+                $photo = new \samson\activerecord\gallery(false);
+                $photo->Name = $upload->realName();
+                $photo->Src = $upload->name();
                 $photo->Path = $upload->path();
-				$photo->MaterialID = $material->id;
+                $photo->MaterialID = $material->id;
                 $photo->size = $upload->size();
                 $photo->Active = 1;
-				$photo->save();
+                $photo->save();
 
                 if (dbQuery('material')->cond('parent_id', $material->id)->cond('type', 2)->exec($children)) {
                     foreach ($children as $child) {
@@ -127,19 +125,19 @@ class App extends \samson\cms\App
                     }
                 }
 
-				// Call scale if it is loaded
-				if (class_exists('\samson\scale\ScaleController', false)) {
+                // Call scale if it is loaded
+                if (class_exists('\samson\scale\ScaleController', false)) {
                     /** @var \samson\scale\Scale $scale */
                     $scale = m('scale');
                     $scale->resize($upload->fullPath(), $upload->name(), $upload->uploadDir);
                 }
 
-				$result['status'] = true;
-			}
-		}
-		
-		return $result;
-	}
+                $result['status'] = true;
+            }
+        }
+
+        return $result;
+    }
 
     public function __async_priority()
     {
@@ -184,35 +182,35 @@ class App extends \samson\cms\App
             $path = $image->Path . $image->Src;
 
             // If there is image for this path
-            $ch = curl_init(url_build($path));
-            curl_setopt($ch, CURLOPT_NOBODY, true);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 2);
-            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 2);
-            curl_exec($ch);
-            if (curl_getinfo($ch, CURLINFO_HTTP_CODE) == 200) {
+            $curlHandle = curl_init(url_build($path));
+            curl_setopt($curlHandle, CURLOPT_NOBODY, true);
+            curl_setopt($curlHandle, CURLOPT_TIMEOUT, 2);
+            curl_setopt($$curlHandle, CURLOPT_CONNECTTIMEOUT, 2);
+            curl_exec($curlHandle);
+            if (curl_getinfo($curlHandle, CURLINFO_HTTP_CODE) == 200) {
                 $result['status'] = true;
                 $result['html'] = $this->view('editor/index')
                     ->set($image, 'image')
                     ->set('path', $path)
                     ->output();
             }
-            curl_close($ch);
+            curl_close($curlHandle);
 
         }
         return $result;
     }
-	
-	/**
-	 * Render gallery images list
-	 * @param string $material_id Material identifier
+
+    /**
+     * Render gallery images list
+     * @param string $material_id Material identifier
      * @return string html representation of image list
-	 */
-	public function html_list($material_id)
-	{
-		// Get all material images
-		$items_html = '';
+     */
+    public function html_list($material_id)
+    {
+        // Get all material images
+        $items_html = '';
         $images = array();
-		if(dbQuery('gallery')->cond('MaterialID', $material_id )->order_by('priority')->exec($images)) {
+        if (dbQuery('gallery')->cond('MaterialID', $material_id)->order_by('priority')->exec($images)) {
             foreach ($images as $image) {
                 // Get image size string
                 $size = ', ';
@@ -249,17 +247,18 @@ class App extends \samson\cms\App
                     ->output();
             }
         }
-	
-		// Render content into inner content html
-		return $this->view( 'tumbs/index' )
-		    ->set('images', $items_html )
-		    ->set('material_id', $material_id)
-		->output();
-	}
+
+        // Render content into inner content html
+        return $this->view('tumbs/index')
+            ->set('images', $items_html)
+            ->set('material_id', $material_id)
+        ->output();
+    }
 
     public function humanFileSize($bytes, $decimals = 2) {
-        $sz = 'BKMGTP';
+        $sizeLetters = 'BKBMBGBTBPB';
         $factor = (int)(floor((strlen($bytes) - 1) / 3));
-        return sprintf("%.{$decimals}f", $bytes / pow(1024, $factor)) . @$sz[$factor];
+        $sizeLetter = ($factor <= 0) ? substr($sizeLetters, 0, 1) : substr($sizeLetters, $factor * 2 - 1, 2);
+        return sprintf("%.{$decimals}f", $bytes / pow(1024, $factor)) . $sizeLetter;
     }
 }

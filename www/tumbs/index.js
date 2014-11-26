@@ -124,7 +124,7 @@ var SJSGallery = function( container )
                                     var aspectRatio = $('.__image_editor_aspect_ratio').val();
                                     image.cropper('setData', {width: width, height: height});
                                 });
-                                
+
                             },
                             done: function(data){
                                 $('.__image_editor_width').val(data.width);
