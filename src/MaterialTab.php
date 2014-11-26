@@ -9,26 +9,25 @@ use samson\cms\web\material\FormTab;
  * @author Egorov Vitaly <egorov@samsonos.com>
  */
 class MaterialTab extends FormTab
-{	
-	/** Tab name for showing in header */
-	public $name = 'Галлерея';
-	
-	/** HTML identifier */
-	public $id = 'gallery-tab';
-	
-	/** Tab sorting index */
-	public $index = 4;
+{
+    /** Tab name for showing in header */
+    public $name = 'Галлерея';
 
-	/** Content view path */
-	private $content_view = 'tumbs/index';
+    /** HTML identifier */
+    public $id = 'gallery-tab';
 
-	/** @see \samson\cms\web\material\FormTab::content() */
-	public function content()
-	{
-		// Render content into inner content html
-		if( isset($this->form->material) ) $this->content_html = m('gallery')->html_list( $this->form->material->id );	
+    /** Tab sorting index */
+    public $index = 4;
 
-		// Render parent tab view
-		return parent::content();
-	}
+    /** @see \samson\cms\web\material\FormTab::content() */
+    public function content()
+    {
+        // Render content into inner content html
+        if (isset($this->form->material)) {
+            $this->content_html = m('gallery')->html_list($this->form->material->id);
+        }
+
+        // Render parent tab view
+        return parent::content();
+    }
 }
