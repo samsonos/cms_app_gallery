@@ -1,7 +1,7 @@
 <div class="__image_editor">
     <div class="inner_block">
         <div class="__image_container">
-            <img src="<?php v('path') ?>">
+            <img src="<?php v('path') ?>" image_src="<?php v('path') ?>">
         </div>
         <p class="__image_name"><?php v('image_Name') ?></p>
         <div class="__image_editor_panel">
@@ -32,10 +32,12 @@
                     <?php t('Соотношение:') ?>
                     <input type="number" class="__image_editor_input __image_editor_aspect_ratio" value="0.5" disabled />
                 </label>
-                <p class="__image_editor_btn __image_editor_btn_confirm"><?php t('Применить') ?></p>
-            </div>
-            <div class="__image_editor_panel_row clearfix">
-                <a class="__image_editor_btn __image_editor_btn_save"><?php t('Сохранить') ?></a>
+                <label>
+                    <img src="<?php url_base('img', 'lock_icon.png') ?>">
+                    <input type="checkbox" class="__image_editor_input __image_editor_check">
+                </label>
+<!--                <p class="__image_editor_btn __image_editor_btn_confirm">--><?php //t('Применить') ?><!--</p>-->
+                <a class="__image_editor_btn __image_editor_btn_save" href="<?php url_base('gallery', 'edit', 'image_id') ?>"><?php t('Вырезать') ?></a>
             </div>
         </div>
     </div>

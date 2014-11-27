@@ -171,7 +171,7 @@ class App extends \samson\cms\App
      * @param int $imageId Image identifier to insert into editor
      * @return array Result array
      */
-    public function __async_edit($imageId)
+    public function __async_show_edit($imageId)
     {
         /** @var array $result Result of asynchronous controller */
         $result = array('status' => false);
@@ -179,13 +179,14 @@ class App extends \samson\cms\App
         $image = null;
         if (dbQuery('gallery')->cond('PhotoID', $imageId)->first($image)) {
 
+            /** @var string $path Path to image */
             $path = $image->Path . $image->Src;
 
             // If there is image for this path
             $curlHandle = curl_init(url_build($path));
             curl_setopt($curlHandle, CURLOPT_NOBODY, true);
             curl_setopt($curlHandle, CURLOPT_TIMEOUT, 2);
-            curl_setopt($$curlHandle, CURLOPT_CONNECTTIMEOUT, 2);
+            curl_setopt($curlHandle, CURLOPT_CONNECTTIMEOUT, 2);
             curl_exec($curlHandle);
             if (curl_getinfo($curlHandle, CURLINFO_HTTP_CODE) == 200) {
                 $result['status'] = true;
@@ -196,6 +197,44 @@ class App extends \samson\cms\App
             }
             curl_close($curlHandle);
 
+        }
+        return $result;
+    }
+
+    public function __async_edit($imageId)
+    {
+        /** @var array $result Result of asynchronous controller */
+        $result = array('status' => false);
+        /** @var \samson\activerecord\gallery $image Image to insert into editor */
+        $image = null;
+        $imageResource = null;
+        if (dbQuery('gallery')->cond('PhotoID', $imageId)->first($image)) {
+            $path = getcwd().parse_url(url_build($image->Path . $image->Src), PHP_URL_PATH);
+            var_dump($path);
+
+            switch (pathinfo($path, PATHINFO_EXTENSION)) {
+                case 'jpeg':
+                    $imageResource = imagecreatefromjpeg($path);
+                    break;
+                case 'jpg':
+                    $imageResource = imagecreatefromjpeg($path);
+                    break;
+                case 'png':
+                    $imageResource = imagecreatefrompng($path);
+                    break;
+                case 'gif':
+                    $imageResource = imagecreatefromgif($path);
+                    break;
+            }
+            $rotatedImage = imagerotate($imageResource, -($_POST['rotate']), hexdec('FFFFFF'));
+            $croppedImage = imagecrop($rotatedImage, array('x' => $_POST['crop_x'],
+                'y' => $_POST['crop_y'],
+                'width' => $_POST['crop_width'],
+                'height' => $_POST['crop_height']));
+            var_dump(imagejpeg($croppedImage, $path));
+            imagedestroy($croppedImage);
+            imagedestroy($rotatedImage);
+            imagedestroy($imageResource);
         }
         return $result;
     }

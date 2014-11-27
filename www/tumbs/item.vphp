@@ -1,6 +1,6 @@
 <li title="<?php iv('image_Name') ?>" image_id = "<?php v('image_PhotoID') ?>">
     <?php vimg('imgpath', '', '', $image->Name)?>
     <p><span class="img_name"><?php iv('name') ?></span><span class="img_size"><?php iv('size') ?></span></p>
-	<a href="<?php url_base('gallery', 'edit', 'image_id') ?>" class="btn-edit icon-edit" title="<?php t('Редактировать') ?>"></a>
+	<a href="<?php url_base('gallery', 'show_edit', 'image_id') ?>" class="btn-edit icon-edit" title="<?php t('Редактировать') ?>"></a>
     <a href="<?php url_base('gallery', 'delete', 'image_id', 'update', 'material_id')?>" class="btn-delete icon-delete" title="<?php t('Удалить')?>"></a>
 </li>	

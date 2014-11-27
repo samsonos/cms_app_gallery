@@ -73,58 +73,6 @@ var SJSGallery = function( container )
                             built: function(){
                                 $('.cropper-container').css('top', '0px');
                                 $('img.cropper-invisible').css('display', 'none');
-
-                                // Disable text highlighting on buttons
-                                $('.__image_editor_btn').mousedown(function(){
-                                    return false;
-                                });
-
-                                // On zoom In button click
-                                var timeoutId = 0;
-                                $('.__image_editor_btn_zoom_in').mousedown(function(){
-                                    var zoom = $('.__image_editor_input_zoom').val();
-                                    image.cropper('zoom', zoom);
-                                    timeoutId = setInterval(function(){
-                                        image.cropper('zoom', zoom);
-                                    }, 300);
-                                    return false;
-                                }).bind('mouseup mouseleave', function() {
-                                    clearTimeout(timeoutId);
-                                });
-
-
-                                // On zoom out button click
-                                $('.__image_editor_btn_zoom_out').mousedown(function(){
-                                    var zoom = $('.__image_editor_input_zoom').val();
-                                    image.cropper('zoom', -zoom);
-                                    timeoutId = setInterval(function(){
-                                        image.cropper('zoom', -zoom);
-                                    }, 300);
-                                    return false;
-                                }).bind('mouseup mouseleave', function() {
-                                    clearTimeout(timeoutId);
-                                });
-
-                                // On rotate left button click
-                                $('.__image_editor_btn_rotate_left').click(function(){
-                                    var angle = $('.__image_editor_input_degree').val();
-                                    image.cropper('rotate', -angle);
-                                });
-
-                                // On rotate right button click
-                                $('.__image_editor_btn_rotate_right').click(function(){
-                                    var angle = $('.__image_editor_input_degree').val();
-                                    image.cropper('rotate', angle);
-                                });
-
-                                // On "Применить" button click
-                                $('.__image_editor_btn_confirm').click(function(){
-                                    var width = $('.__image_editor_width').val();
-                                    var height = $('.__image_editor_height').val();
-                                    var aspectRatio = $('.__image_editor_aspect_ratio').val();
-                                    image.cropper('setData', {width: width, height: height});
-                                });
-
                             },
                             done: function(data){
                                 $('.__image_editor_width').val(data.width);
@@ -132,6 +80,97 @@ var SJSGallery = function( container )
                                 $('.__image_editor_aspect_ratio').val(data.width/data.height);
                             }
                         });
+
+                        // Bind buttons on popup starts from here
+                        // Disable text highlighting on buttons
+                        $('.__image_editor_btn').mousedown(function(){
+                            return false;
+                        });
+
+                        // On zoom In button click
+                        var timeoutId = 0;
+                        $('.__image_editor_btn_zoom_in').mousedown(function(){
+                            var zoom = $('.__image_editor_input_zoom').val();
+                            image.cropper('zoom', zoom);
+                            timeoutId = setInterval(function(){
+                                image.cropper('zoom', zoom);
+                            }, 300);
+                            return false;
+                        }).bind('mouseup mouseleave', function() {
+                            clearTimeout(timeoutId);
+                        });
+
+                        // On zoom out button click
+                        $('.__image_editor_btn_zoom_out').mousedown(function(){
+                            var zoom = $('.__image_editor_input_zoom').val();
+                            image.cropper('zoom', -zoom);
+                            timeoutId = setInterval(function(){
+                                image.cropper('zoom', -zoom);
+                            }, 300);
+                            return false;
+                        }).bind('mouseup mouseleave', function() {
+                            clearTimeout(timeoutId);
+                        });
+
+                        // On rotate left button click
+                        $('.__image_editor_btn_rotate_left').click(function(){
+                            var angle = $('.__image_editor_input_degree').val();
+                            image.cropper('rotate', -angle);
+                        });
+
+                        // On rotate right button click
+                        $('.__image_editor_btn_rotate_right').click(function(){
+                            var angle = $('.__image_editor_input_degree').val();
+                            image.cropper('rotate', angle);
+                        });
+
+                        // On cropped zone width change
+                        $('.__image_editor_width').change(function(){
+                            var width = $('.__image_editor_width').val();
+                            image.cropper('setData', {width: width});
+                        });
+
+                        // On cropped zone height change
+                        $('.__image_editor_height').change(function(){
+                            var height = $('.__image_editor_height').val();
+                            image.cropper('setData', {height: height});
+                        });
+
+                        // On checkbox click
+                        $('.__image_editor_check').change(function(){
+                            if (this.checked) {
+                                var aspectRatio = $('.__image_editor_aspect_ratio').val();
+                                image.cropper('setAspectRatio', aspectRatio);
+                            } else {
+                                image.cropper('setAspectRatio', 'auto');
+                            }
+                        });
+
+                        // On "Save"("") button click
+                        var sendButton = $('.__image_editor_btn_save');
+                        sendButton.click(function(){
+                            var imageData = image.cropper('getImageData');
+                            var cropData = image.cropper('getData');
+                            var formData = new FormData();
+                            formData.append('rotate', imageData.rotate);
+                            formData.append('crop_x', cropData.x);
+                            formData.append('crop_y', cropData.y);
+                            formData.append('crop_width', cropData.width);
+                            formData.append('crop_height', cropData.height);
+                            var xhr = new XMLHttpRequest();
+                            xhr.open('POST', sendButton.attr('href'), true);
+                            xhr.setRequestHeader("Cache-Control", "no-cache");
+                            xhr.setRequestHeader('SJSAsync', 'true');
+                            xhr.send(formData);
+                            xhr.onreadystatechange = function(){
+                              if (xhr.readyState == 4) {
+                                  image.cropper('replace', image.attr('image_src') + '?' + new Date().getTime());
+                              }
+                            };
+                            return false;
+                        });
+                        // End binding
+
                     } else {
                         alert('Can\'t find image!');
                     }
@@ -139,19 +178,6 @@ var SJSGallery = function( container )
                     console.log('Can\'t load editor');
                 }
             });
-            //var imageSrc = $('img', e.target.parentNode).attr('src');
-            //console.log(imageSrc);
-            //$('body').append('<div class="__cropper_container"><img></div>');
-            //var container = $('.__cropper_container');
-            //container.width(1000);
-            //container.height(600);
-            //var image = $('img', container);
-            //image.attr('src', imageSrc);
-            //image.cropper({
-            //    //aspectRatio: 16 / 9,
-            //    dashed: false,
-            //    zoomable: false
-            //});
 
             return false;
         });
