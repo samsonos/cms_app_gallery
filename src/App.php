@@ -201,39 +201,47 @@ class App extends \samson\cms\App
         return $result;
     }
 
+    /**
+     * @param int $imageId Edit image identifier
+     * @return array
+     */
     public function __async_edit($imageId)
     {
         /** @var array $result Result of asynchronous controller */
         $result = array('status' => false);
         /** @var \samson\activerecord\gallery $image Image to insert into editor */
         $image = null;
+        /** @var resource $imageResource Copy of edit image */
         $imageResource = null;
+        /** @var resource $croppedImage Resource of cropped image */
+        $croppedImage = null;
         if (dbQuery('gallery')->cond('PhotoID', $imageId)->first($image)) {
             $path = getcwd().parse_url(url_build($image->Path . $image->Src), PHP_URL_PATH);
-            var_dump($path);
 
             switch (pathinfo($path, PATHINFO_EXTENSION)) {
                 case 'jpeg':
                     $imageResource = imagecreatefromjpeg($path);
+                    $croppedImage = $this->cropImage($imageResource);
+                    $result['status'] = imagejpeg($croppedImage, $path);
                     break;
                 case 'jpg':
                     $imageResource = imagecreatefromjpeg($path);
+                    $croppedImage = $this->cropImage($imageResource);
+                    $result['status'] = imagejpeg($croppedImage, $path);
                     break;
                 case 'png':
                     $imageResource = imagecreatefrompng($path);
+                    $croppedImage = $this->cropImage($imageResource);
+                    $result['status'] = imagepng($croppedImage, $path);
                     break;
                 case 'gif':
                     $imageResource = imagecreatefromgif($path);
+                    $croppedImage = $this->cropImage($imageResource);
+                    $result['status'] = imagegif($croppedImage, $path);
                     break;
             }
-            $rotatedImage = imagerotate($imageResource, -($_POST['rotate']), hexdec('FFFFFF'));
-            $croppedImage = imagecrop($rotatedImage, array('x' => $_POST['crop_x'],
-                'y' => $_POST['crop_y'],
-                'width' => $_POST['crop_width'],
-                'height' => $_POST['crop_height']));
-            var_dump(imagejpeg($croppedImage, $path));
+
             imagedestroy($croppedImage);
-            imagedestroy($rotatedImage);
             imagedestroy($imageResource);
         }
         return $result;
@@ -299,5 +307,22 @@ class App extends \samson\cms\App
         $factor = (int)(floor((strlen($bytes) - 1) / 3));
         $sizeLetter = ($factor <= 0) ? substr($sizeLetters, 0, 1) : substr($sizeLetters, $factor * 2 - 1, 2);
         return sprintf("%.{$decimals}f", $bytes / pow(1024, $factor)) . $sizeLetter;
+    }
+
+
+    /**
+     * Function to reduce code size in __async_edit method
+     * @param $imageResource
+     * @return bool|resource
+     */
+    public function cropImage($imageResource)
+    {
+        $rotatedImage = imagerotate($imageResource, -($_POST['rotate']), hexdec('FFFFFF'));
+        $croppedImage = imagecrop($rotatedImage, array('x' => $_POST['crop_x'],
+            'y' => $_POST['crop_y'],
+            'width' => $_POST['crop_width'],
+            'height' => $_POST['crop_height']));
+        imagedestroy($rotatedImage);
+        return $croppedImage;
     }
 }
