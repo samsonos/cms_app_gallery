@@ -18,6 +18,9 @@ class App extends \samson\cms\App
 
     private $priority = array();
 
+    /** @var \samson\fs\FileService $file */
+    private $file;
+
     /** @see \samson\core\ExternalModule::init()
      * @return bool|void Returns module check result
      */
@@ -26,6 +29,7 @@ class App extends \samson\cms\App
         // TODO: Change this logic to make tab loading more simple
         // Create new gallery tab object to load it
         class_exists(\samson\core\AutoLoader::className('MaterialTab', 'samson\cms\web\gallery'));
+        $this->file = m('fs');
     }
 
     /**
@@ -183,20 +187,13 @@ class App extends \samson\cms\App
             $path = $image->Path . $image->Src;
 
             // If there is image for this path
-            $curlHandle = curl_init(url_build($path));
-            curl_setopt($curlHandle, CURLOPT_NOBODY, true);
-            curl_setopt($curlHandle, CURLOPT_TIMEOUT, 2);
-            curl_setopt($curlHandle, CURLOPT_CONNECTTIMEOUT, 2);
-            curl_exec($curlHandle);
-            if (curl_getinfo($curlHandle, CURLINFO_HTTP_CODE) == 200) {
+            if ($this->file->exists($path)) {
                 $result['status'] = true;
                 $result['html'] = $this->view('editor/index')
                     ->set($image, 'image')
                     ->set('path', $path)
                     ->output();
             }
-            curl_close($curlHandle);
-
         }
         return $result;
     }
@@ -216,7 +213,16 @@ class App extends \samson\cms\App
         /** @var resource $croppedImage Resource of cropped image */
         $croppedImage = null;
         if (dbQuery('gallery')->cond('PhotoID', $imageId)->first($image)) {
-            $path = getcwd().parse_url(url_build($image->Path . $image->Src), PHP_URL_PATH);
+
+            $path = $image->Path . $image->Src;
+            // Cut base dir name
+            if (__SAMSON_BASE__ != '/') {
+                $path = str_replace(__SAMSON_BASE__, '', $path);
+            }
+            // Cut first back slash to retrieve relative path
+            if ($path[0] === '/') {
+                $path = substr($path, 1);
+            }
 
             switch (pathinfo($path, PATHINFO_EXTENSION)) {
                 case 'jpeg':
@@ -268,15 +274,10 @@ class App extends \samson\cms\App
                     $path = $image->Path . $image->Src;
                 }
 
-                /*$ch = curl_init(url_build($path));
-                curl_setopt($ch, CURLOPT_NOBODY, true);
-                curl_setopt($ch, CURLOPT_TIMEOUT, 2);
-                curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 2);
-                curl_exec($ch);
-                if (curl_getinfo($ch, CURLINFO_HTTP_CODE) != 200) {
+                // if file doesn't exist
+                if (!$this->file->exists($path)) {
                     $path = 'img/no-img.png';
                 }
-                curl_close($ch);*/
 
                 // set image size string representation, if it is not 0
                 $size = ($image->size == 0) ? '' : $size . $this->humanFileSize($image->size);

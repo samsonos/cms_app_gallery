@@ -1,60 +1,71 @@
 /** Javascript SamsonCMS Gallery function-object */
 var SJSGallery = function( container )
 {
-	// Cache reference
-	var o = this;
+    // Cache reference
+    var o = this;
     var containerDOMElement = container.DOMElement;
-    var uploadUrl = (containerDOMElement.hasAttribute('__action_upload')) ? containerDOMElement.getAttribute('__action_upload') : 'upload/';
-    var updateUrl = (containerDOMElement.hasAttribute('__action_update')) ? containerDOMElement.getAttribute('__action_update') : 'update/';
+    var uploadUrl, updateUrl, priorityUrl;
 
-	// Safely save container object
-	o.container = s(container);
+    // Try to get action urls from container
+    if (containerDOMElement.hasAttribute('__action_upload')) {
+        uploadUrl = containerDOMElement.getAttribute('__action_upload')
+    } else {
+        console.error('No upload URL was set, please add "__action_upload" attribute and proper URL to gallery container');
+    }
+    if (containerDOMElement.hasAttribute('__action_update')) {
+        updateUrl = containerDOMElement.getAttribute('__action_update')
+    } else {
+        console.error('No update URL was set, please add "__action_update" attribute and proper URL to gallery container');
+    }
+    if (containerDOMElement.hasAttribute('__action_priority')) {
+        priorityUrl = containerDOMElement.getAttribute('__action_priority')
+    } else {
+        console.error('No priority URL was set, please add "__action_priority" attribute and proper URL to gallery container');
+    }
 
-	// Create loader object
-	//o.loader = new Loader( o.container.parent() );
-	
-	/** Gallery initialization */
-	o.init = function( response )
-	{			
-		// If we have responce from server
-		if( response ) try
-		{	
-			// Parse JSON responce
-			response = JSON.parse( response );
-					
-			// If we have html - update it
-			if( response.html ) 
-			{	
-				// Fill new HTML
-				o.container = o.container.replace( response.html );
-				
-				o.container.hide();		
-				
-				// Check image loading
-				isImagesLoaded( s('img', o.container), function()
-				{
-					//o.loader.hide();
-					
-					o.container.show();
-				});			
-			}
-		}		
-		catch(e){ s.trace('Ошибка обработки ответа полученного от сервера, повторите попытку отправки данных:'+e); };	
-				
-		// Init SamsonJS Gallery plugin on container
-		o.container.gallery();
+    // Safely save container object
+    o.container = s(container);
 
-		// Bind delete event
-		s('.btn-delete',o.container).click(function(btn)
-		{
-			// Ask for confirmation
-			if(confirm('Delete image?'))
-			{
-				//o.loader.show('Обновление галлереи',true);
-				s.ajax( btn.a('href'), init );
-			}
+    /** Gallery initialization */
+    o.initFunction = function( response )
+    {
+        // If we have responce from server
+        if( response ) try
+        {
+            // Parse JSON responce
+            response = JSON.parse( response );
 
-		}, true, true );
+            // If we have html - update it
+            if( response.html )
+            {
+                // Fill new HTML
+                o.container = o.container.replace( response.html );
+
+                o.container.hide();
+
+                // Check image loading
+                isImagesLoaded( s('img', o.container), function()
+                {
+                    o.container.show();
+                });
+            }
+        }
+        catch(e){ s.trace('Ошибка обработки ответа полученного от сервера, повторите попытку отправки данных:'+e); }
+
+        // Init SamsonJS Gallery plugin on container
+        o.container.gallery();
+
+        // Bind delete event
+        s('.btn-delete',o.container).click(function(btn)
+        {
+            // Ask for confirmation
+            if(confirm('Delete image?'))
+            {
+                //o.loader.show('Обновление галлереи',true);
+                s.ajax( btn.a('href'), o.initFunction );
+            }
+
+        }, true, true );
 
         s('.btn-edit', o.container).click(function(btn){
             s.ajax(btn.a('href'), function(response){
@@ -163,9 +174,9 @@ var SJSGallery = function( container )
                             xhr.setRequestHeader('SJSAsync', 'true');
                             xhr.send(formData);
                             xhr.onreadystatechange = function(){
-                              if (xhr.readyState == 4) {
-                                  image.cropper('replace', image.attr('image_src') + '?' + new Date().getTime());
-                              }
+                                if (xhr.readyState == 4) {
+                                    image.cropper('replace', image.attr('image_src') + '?' + new Date().getTime());
+                                }
                             };
                             return false;
                         });
@@ -191,7 +202,7 @@ var SJSGallery = function( container )
             containment: "parent",
             delay: 150,
             items: "> li:not(:last-child)",
-            stop: function(event, ui) {
+            stop: function() {
                 var ids = [];
                 $('.scms-gallery li').each(function(idx, item){
                     if (item.hasAttribute('image_id')) {
@@ -199,11 +210,12 @@ var SJSGallery = function( container )
                     }
                 });
                 $.ajax({
-                    url: '/gallery/priority',
+                    url: priorityUrl,
                     type: 'POST',
                     async: true,
                     data: {ids:ids},
-                    success: function(response){
+                    headers: {
+                        'SJSAsync': 'true'
                     }
                 });
             }
@@ -215,27 +227,22 @@ var SJSGallery = function( container )
                 elem.css('background-color', 'inherit');
                 var btn = s('.btn-upload').DOMElement;
                 btn.parentNode.removeChild(btn);
-                //o.loader.show('Обновление галлереи',true);
             },
             completeAll: function(){
-                s.ajax(updateUrl, init);
+                s.ajax(updateUrl, o.initFunction);
             }
         });
 
         s('.btn-upload').fileUpload({
             url: uploadUrl,
-            //inputSelector: '.__image-upload',
-            start: function(){
-                //o.loader.show('Обновление галлереи',true);
-            },
             completeAll: function(){
-                s.ajax(updateUrl, init);
+                s.ajax(updateUrl, o.initFunction);
             }
         });
-	};
-	
-	// Base init
-	o.init();
+    };
+
+    // Base init
+    o.initFunction();
 };
 
 // Load gallery if class found
