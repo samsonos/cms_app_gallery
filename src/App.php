@@ -237,12 +237,12 @@ class App extends \samson\cms\App
                     break;
                 case 'png':
                     $imageResource = imagecreatefrompng($path);
-                    $croppedImage = $this->cropImage($imageResource);
+                    $croppedImage = $this->cropTransparentImage($imageResource);
                     $result['status'] = imagepng($croppedImage, $path);
                     break;
                 case 'gif':
                     $imageResource = imagecreatefromgif($path);
-                    $croppedImage = $this->cropImage($imageResource);
+                    $croppedImage = $this->cropTransparentImage($imageResource);
                     $result['status'] = imagegif($croppedImage, $path);
                     break;
             }
@@ -318,11 +318,33 @@ class App extends \samson\cms\App
      */
     public function cropImage($imageResource)
     {
-        $rotatedImage = imagerotate($imageResource, -($_POST['rotate']), hexdec('FFFFFF'));
+        $imageTransparency = imagecolorallocatealpha($imageResource, 255, 255, 255, 127);
+        $rotatedImage = imagerotate($imageResource, -($_POST['rotate']), $imageTransparency);
         $croppedImage = imagecrop($rotatedImage, array('x' => $_POST['crop_x'],
             'y' => $_POST['crop_y'],
             'width' => $_POST['crop_width'],
             'height' => $_POST['crop_height']));
+        imagedestroy($rotatedImage);
+        return $croppedImage;
+    }
+
+    public function cropTransparentImage($imageResource)
+    {
+        $imageTransparency = imagecolorallocatealpha($imageResource, 255, 255, 255, 127);
+        $croppedImage = imagecreatetruecolor($_POST['crop_width'], $_POST['crop_height']);
+        imagefill($croppedImage, 0, 0, $imageTransparency);
+        imagesavealpha($croppedImage, true);
+        $rotatedImage = imagerotate($imageResource, -($_POST['rotate']), $imageTransparency);
+        imagecopy(
+            $croppedImage,
+            $rotatedImage,
+            0,
+            0,
+            $_POST['crop_x'],
+            $_POST['crop_y'],
+            $_POST['crop_width'],
+            $_POST['crop_height']
+        );
         imagedestroy($rotatedImage);
         return $croppedImage;
     }
