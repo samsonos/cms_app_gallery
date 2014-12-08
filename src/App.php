@@ -18,9 +18,6 @@ class App extends \samson\cms\App
 
     private $priority = array();
 
-    /** @var \samson\fs\FileService $file */
-    private $file;
-
     /** @see \samson\core\ExternalModule::init()
      * @return bool|void Returns module check result
      */
@@ -29,7 +26,6 @@ class App extends \samson\cms\App
         // TODO: Change this logic to make tab loading more simple
         // Create new gallery tab object to load it
         class_exists(\samson\core\AutoLoader::className('MaterialTab', 'samson\cms\web\gallery'));
-        $this->file = m('fs');
     }
 
     /**
@@ -48,20 +44,24 @@ class App extends \samson\cms\App
         // Find gallery record in DB
         if (dbQuery('gallery')->id($id)->first($db_image)) {
             if ($db_image->Path != '') {
-                $upload_dir = $db_image->Path;
+
+                // Get image path
+                $imagePath = $this->formImagePath($db_image->Path, $db_image->Src);
                 // Physically remove file from server
-                if (file_exists($db_image->Path.$db_image->Src)) {
-                    unlink($db_image->Path.$db_image->Src);
+                if ($this->imageExists($imagePath)) {
+                    unlink($imagePath);
                 }
 
-                /** @var \samson\scale\Scale $scale */
+                /** @var \samson\scale\ScaleController $scale */
                 $scale = m('scale');
+
                 // Delete thumbnails
-                if (class_exists('\samson\scale\Scale', false)) {
+                if (class_exists('\samson\scale\ScaleController', false)) {
                     foreach (array_keys($scale->thumnails_sizes) as $folder) {
-                        $folder_path = $upload_dir.$folder;
-                        if (file_exists($folder_path.'/'.$db_image->Path.$db_image->Src)) {
-                            unlink($folder_path.'/'.$db_image->Path.$db_image->Src);
+                        // Form image path for scale module
+                        $imageScalePath = $this->formImagePath($db_image->Path . $folder . '/', $db_image->Src);
+                        if ($this->imageExists($imageScalePath)) {
+                            unlink($imageScalePath);
                         }
                     }
                 }
@@ -102,8 +102,10 @@ class App extends \samson\cms\App
         $upload = null;
         // Uploading file to server and path current material identifier
         if (uploadFile($upload, array(), $material_id)) {
-            /** @var \samson\activerecord\material $material */
+            /** @var \samson\activerecord\material $material Current material object */
             $material = null;
+            /** @var array $children List of related materials */
+            $children = null;
             // Check if participant has not uploaded remix yet
             if (dbQuery('material')->cond('MaterialID', $material_id)->cond('Active', 1)->first($material)) {
                 // Create empty db record
@@ -131,7 +133,7 @@ class App extends \samson\cms\App
 
                 // Call scale if it is loaded
                 if (class_exists('\samson\scale\ScaleController', false)) {
-                    /** @var \samson\scale\Scale $scale */
+                    /** @var \samson\scale\ScaleController $scale */
                     $scale = m('scale');
                     $scale->resize($upload->fullPath(), $upload->name(), $upload->uploadDir);
                 }
@@ -184,10 +186,10 @@ class App extends \samson\cms\App
         if (dbQuery('gallery')->cond('PhotoID', $imageId)->first($image)) {
 
             /** @var string $path Path to image */
-            $path = $image->Path . $image->Src;
+            $path = $this->formImagePath($image->Path, $image->Src);
 
             // If there is image for this path
-            if ($this->file->exists($path)) {
+            if ($this->imageExists($path)) {
                 $result['status'] = true;
                 $result['html'] = $this->view('editor/index')
                     ->set($image, 'image')
@@ -212,17 +214,10 @@ class App extends \samson\cms\App
         $imageResource = null;
         /** @var resource $croppedImage Resource of cropped image */
         $croppedImage = null;
+
         if (dbQuery('gallery')->cond('PhotoID', $imageId)->first($image)) {
 
-            $path = $image->Path . $image->Src;
-            // Cut base dir name
-            if (__SAMSON_BASE__ != '/') {
-                $path = str_replace(__SAMSON_BASE__, '', $path);
-            }
-            // Cut first back slash to retrieve relative path
-            if ($path[0] === '/') {
-                $path = substr($path, 1);
-            }
+            $path = $this->formImagePath($image->Path, $image->Src);
 
             switch (pathinfo($path, PATHINFO_EXTENSION)) {
                 case 'jpeg':
@@ -262,20 +257,19 @@ class App extends \samson\cms\App
     {
         // Get all material images
         $items_html = '';
-        $images = array();
+        /** @var array $images List of gallery images */
+        $images = null;
+        // there are gallery images
         if (dbQuery('gallery')->cond('MaterialID', $material_id)->order_by('priority')->exec($images)) {
+            /** @var \samson\cms\CMSGallery $image */
             foreach ($images as $image) {
                 // Get image size string
                 $size = ', ';
-                // Get old-way image path, remove full path to check file
-                if (empty($image->Path)) {
-                    $path = $image->Src;
-                } else { // Use new CORRECT way
-                    $path = $image->Path . $image->Src;
-                }
+                // Get image path
+                $path = $this->formImagePath($image->Path, $image->Src);
 
                 // if file doesn't exist
-                if (!$this->file->exists($path)) {
+                if (!$this->imageExists($path)) {
                     $path = 'img/no-img.png';
                 }
 
@@ -303,7 +297,8 @@ class App extends \samson\cms\App
         ->output();
     }
 
-    public function humanFileSize($bytes, $decimals = 2) {
+    public function humanFileSize($bytes, $decimals = 2)
+    {
         $sizeLetters = 'BKBMBGBTBPB';
         $factor = (int)(floor((strlen($bytes) - 1) / 3));
         $sizeLetter = ($factor <= 0) ? substr($sizeLetters, 0, 1) : substr($sizeLetters, $factor * 2 - 1, 2);
@@ -347,5 +342,32 @@ class App extends \samson\cms\App
         );
         imagedestroy($rotatedImage);
         return $croppedImage;
+    }
+
+    private function imageExists($imagePath, $imageSrc = null)
+    {
+        if (isset($imageSrc)) {
+            $imageFullPath = $this->formImagePath($imagePath, $imageSrc);
+        } else {
+            $imageFullPath = $imagePath;
+        }
+
+        /** @var \samson\fs\FileService $file */
+        $file = m('fs');
+        return $file->exists($imageFullPath);
+    }
+
+    private function formImagePath($imagePath, $imageSrc)
+    {
+        // Get old-way image path, remove full path to check file
+        if (empty($imagePath)) {
+            $path = $imageSrc;
+        } else { // Use new CORRECT way
+            $path = $imagePath . $imageSrc;
+        }
+
+        // form relative path to the image
+        $dir = quotemeta(__SAMSON_BASE__);
+        return preg_replace('/' . addcslashes($dir, '/') . '/', '', $path);
     }
 }
