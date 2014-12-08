@@ -368,6 +368,10 @@ class App extends \samson\cms\App
 
         // form relative path to the image
         $dir = quotemeta(__SAMSON_BASE__);
-        return preg_replace('/' . addcslashes($dir, '/') . '/', '', $path);
+        if ($dir == '/') {
+            return substr($path, 1);
+        } else {
+            return preg_replace('/' . addcslashes($dir, '/') . '/', '', $path);
+        }
     }
 }
