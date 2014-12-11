@@ -32,7 +32,16 @@ class App extends \samson\cms\App
         // Set pointer to file service
         $this->fs = & m('fs');
 
+        // Subscribe to event - add gallery field additional field type
+        \samson\core\Event::subscribe('cms_field.select_create', array($this, 'fieldSelectCreate'));
+
         return parent::init($params);
+    }
+
+    /** Field select creation event handler */
+    public function fieldSelectCreate(&$list)
+    {
+        $list[t('Галлерея', true)] = 9;
     }
 
     /**
