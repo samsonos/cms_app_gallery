@@ -16,9 +16,27 @@ class App extends \samson\cms\App
     /** Identifier */
     protected $id = 'gallery';
 
+    /** @var \samson\fs\FileService File service pointer */
+    protected $fs;
+
+    // TODO: @omaximus comments?
     private $priority = array();
 
-    /** @see \samson\core\ExternalModule::init()
+    /**
+     * Initialize module
+     * @param array $params Collection of parameters
+     * @return bool True if success
+     */
+    public function init(array $params = array())
+    {
+        // Set pointer to file service
+        $this->fs = & m('fs');
+
+        return parent::init($params);
+    }
+
+    /**
+     * @see \samson\core\ExternalModule::init()
      * @return bool|void Returns module check result
      */
     public function prepare()
@@ -49,7 +67,7 @@ class App extends \samson\cms\App
                 $imagePath = $this->formImagePath($db_image->Path, $db_image->Src);
                 // Physically remove file from server
                 if ($this->imageExists($imagePath)) {
-                    unlink($imagePath);
+                    $this->fs->delete($imagePath);
                 }
 
                 /** @var \samson\scale\ScaleController $scale */
@@ -61,7 +79,7 @@ class App extends \samson\cms\App
                         // Form image path for scale module
                         $imageScalePath = $this->formImagePath($db_image->Path . $folder . '/', $db_image->Src);
                         if ($this->imageExists($imageScalePath)) {
-                            unlink($imageScalePath);
+                            $this->fs->delete($imageScalePath);
                         }
                     }
                 }
@@ -145,6 +163,7 @@ class App extends \samson\cms\App
         return $result;
     }
 
+    // TODO: @omaximus Comments?
     public function __async_priority()
     {
         $result = array('status' => true);
@@ -201,6 +220,7 @@ class App extends \samson\cms\App
     }
 
     /**
+     * TODO: @omaximus Comments?
      * @param int $imageId Edit image identifier
      * @return array
      */
@@ -297,6 +317,7 @@ class App extends \samson\cms\App
         ->output();
     }
 
+    // TODO: @omaximus Comments?
     public function humanFileSize($bytes, $decimals = 2)
     {
         $sizeLetters = 'BKBMBGBTBPB';
@@ -323,6 +344,7 @@ class App extends \samson\cms\App
         return $croppedImage;
     }
 
+    // TODO: @omaximus Comments?
     public function cropTransparentImage($imageResource)
     {
         $imageTransparency = imagecolorallocatealpha($imageResource, 255, 255, 255, 127);
@@ -344,6 +366,7 @@ class App extends \samson\cms\App
         return $croppedImage;
     }
 
+    // TODO: @omaximus Comments?
     private function imageExists($imagePath, $imageSrc = null)
     {
         if (isset($imageSrc)) {
@@ -352,11 +375,11 @@ class App extends \samson\cms\App
             $imageFullPath = $imagePath;
         }
 
-        /** @var \samson\fs\FileService $file */
-        $file = m('fs');
-        return $file->exists($imageFullPath);
+        // Call file service existence method
+        return $this->fs->exists($imageFullPath);
     }
 
+    // TODO: @omaximus Comments?
     private function formImagePath($imagePath, $imageSrc)
     {
         // Get old-way image path, remove full path to check file
