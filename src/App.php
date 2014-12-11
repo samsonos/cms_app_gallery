@@ -270,7 +270,7 @@ class App extends \samson\cms\App
 
                 // if file doesn't exist
                 if (!$this->imageExists($path)) {
-                    $path = 'img/no-img.png';
+                    $path = \samson\resourcer\ResourceRouter::url('www/img/no-img.png', $this);
                 }
 
                 // set image size string representation, if it is not 0
