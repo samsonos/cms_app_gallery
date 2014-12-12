@@ -33,7 +33,7 @@
                     <input type="number" class="__image_editor_input __image_editor_aspect_ratio" value="0.5" disabled />
                 </label>
                 <label>
-                    <img src="<?php url_base('img', 'lock_icon.png') ?>">
+                    <img src="<?php src('www/img/lock_icon.png') ?>">
                     <input type="checkbox" class="__image_editor_input __image_editor_check">
                 </label>
 <!--                <p class="__image_editor_btn __image_editor_btn_confirm">--><?php //t('Применить') ?><!--</p>-->

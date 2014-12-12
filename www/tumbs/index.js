@@ -30,30 +30,34 @@ var SJSGallery = function( container )
     o.initFunction = function( response )
     {
         // If we have responce from server
-        if( response ) try
-        {
-            // Parse JSON responce
-            response = JSON.parse( response );
+        if (response) {
+            try {
+                // Parse JSON responce
+                response = JSON.parse(response);
 
-            // If we have html - update it
-            if( response.html )
-            {
-                // Fill new HTML
-                o.container = o.container.replace( response.html );
+                // If we have html - update it
+                if (response.html) {
+                    // Create hidden block
+                    var hidden = s(response.html).hide();
 
-                o.container.hide();
-
-                // Check image loading
-                isImagesLoaded( s('img', o.container), function()
-                {
-                    o.container.show();
-                });
+                    // Fill new HTML
+                    o.container = o.container.replace(hidden);
+                }
+            }
+            catch (e) {
+                s.trace('Ошибка обработки ответа полученного от сервера, повторите попытку отправки данных:' + e);
             }
         }
-        catch(e){ s.trace('Ошибка обработки ответа полученного от сервера, повторите попытку отправки данных:'+e); }
 
         // Init SamsonJS Gallery plugin on container
         o.container.gallery();
+
+        if (response) {
+            // Check image loading
+            isImagesLoaded(s('img', o.container), function () {
+                o.container.show();
+            });
+        }
 
         // Bind delete event
         s('.btn-delete',o.container).click(function(btn)
@@ -61,8 +65,11 @@ var SJSGallery = function( container )
             // Ask for confirmation
             if(confirm('Delete image?'))
             {
-                //o.loader.show('Обновление галлереи',true);
-                s.ajax( btn.a('href'), o.initFunction );
+                loader.show('Обновление галлереи',true);
+                s.ajax(btn.a('href'), function(response){
+                    loader.hide();
+                    o.initFunction(response);
+                });
             }
 
         }, true, true );
@@ -160,6 +167,7 @@ var SJSGallery = function( container )
                         // On "Save"("") button click
                         var sendButton = $('.__image_editor_btn_save');
                         sendButton.click(function(){
+                            loader.show('Применение изменений', true);
                             var imageData = image.cropper('getImageData');
                             var cropData = image.cropper('getData');
                             var formData = new FormData();
@@ -175,6 +183,7 @@ var SJSGallery = function( container )
                             xhr.send(formData);
                             xhr.onreadystatechange = function(){
                                 if (xhr.readyState == 4) {
+                                    loader.hide();
                                     image.cropper('replace', image.attr('image_src') + '?' + new Date().getTime());
                                 }
                             };
