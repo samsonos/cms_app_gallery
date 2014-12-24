@@ -37,6 +37,7 @@ var SJSGallery = function( container )
 
                 // If we have html - update it
                 if (response.html) {
+
                     // Create hidden block
                     var hidden = s(response.html).hide();
 
@@ -192,7 +193,7 @@ var SJSGallery = function( container )
                         // End binding
 
                     } else {
-                        alert(s('.__image_not_found').html());
+                        alert('Изображение не найдено!');
                     }
                 } catch (e) {
                     console.log('Can\'t load editor');
