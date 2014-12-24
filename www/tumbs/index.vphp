@@ -5,3 +5,4 @@
 	<li class="btn-upload">
 	</li>
 </ul>
+<div class="__image_not_found" style="display: none"><?php t('Изображение не найдено!') ?></div>

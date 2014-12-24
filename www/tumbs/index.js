@@ -192,7 +192,7 @@ var SJSGallery = function( container )
                         // End binding
 
                     } else {
-                        alert('Can\'t find image!');
+                        alert(s('.__image_not_found').html());
                     }
                 } catch (e) {
                     console.log('Can\'t load editor');
