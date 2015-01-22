@@ -1,8 +1,8 @@
 /** Javascript SamsonCMS Gallery function-object */
 var SJSGallery = function( container )
 {
-    // Cache reference
-    var o = this;
+    // Safely save container object
+    var container = s(container);
     var containerDOMElement = container.DOMElement;
     var uploadUrl, updateUrl, priorityUrl;
 
@@ -23,11 +23,8 @@ var SJSGallery = function( container )
         console.error('No priority URL was set, please add "__action_priority" attribute and proper URL to gallery container');
     }
 
-    // Safely save container object
-    o.container = s(container);
-
     /** Gallery initialization */
-    o.initFunction = function( response )
+    var initFunction = function( response )
     {
         // If we have responce from server
         if (response) {
@@ -42,7 +39,7 @@ var SJSGallery = function( container )
                     var hidden = s(response.html).hide();
 
                     // Fill new HTML
-                    o.container = o.container.replace(hidden);
+                    container = container.replace(hidden);
                 }
             }
             catch (e) {
@@ -51,17 +48,17 @@ var SJSGallery = function( container )
         }
 
         // Init SamsonJS Gallery plugin on container
-        o.container.gallery();
+        container.gallery();
 
         if (response) {
             // Check image loading
-            isImagesLoaded(s('img', o.container), function () {
-                o.container.show();
+            isImagesLoaded(s('img', container), function () {
+                container.show();
             });
         }
 
         // Bind delete event
-        s('.btn-delete',o.container).click(function(btn)
+        s('.btn-delete',container).click(function(btn)
         {
             // Ask for confirmation
             if(confirm('Delete image?'))
@@ -69,13 +66,13 @@ var SJSGallery = function( container )
                 loader.show('Обновление галлереи',true);
                 s.ajax(btn.a('href'), function(response){
                     loader.hide();
-                    o.initFunction(response);
+                    initFunction(response);
                 });
             }
 
         }, true, true );
 
-        s('.btn-edit', o.container).click(function(btn){
+        s('.btn-edit', container).click(function(btn){
             s.ajax(btn.a('href'), function(response){
                 if (response) try {
                     response = JSON.parse(response);
@@ -203,7 +200,7 @@ var SJSGallery = function( container )
             return false;
         });
 
-        $(o.container.DOMElement).sortable({
+        $(container.DOMElement).sortable({
             axis: "x,y",
             revert: true,
             scroll: true,
@@ -214,7 +211,7 @@ var SJSGallery = function( container )
             items: "> li:not(:last-child)",
             stop: function() {
                 var ids = [];
-                $('.scms-gallery li').each(function(idx, item){
+                $('li', container.DOMElement).each(function(idx, item){
                     if (item.hasAttribute('image_id')) {
                         ids[idx] = item.getAttribute('image_id');
                     }
@@ -231,30 +228,28 @@ var SJSGallery = function( container )
             }
         });
 
-        //console.log(s('.scms-gallery', o.container));
-
-        o.container.dropFileUpload({
+        container.dropFileUpload({
             url: uploadUrl,
             drop: function(elem){
                 elem.css('background-color', 'inherit');
-                var btn = s('.btn-upload').DOMElement;
+                var btn = s('.btn-upload', container).DOMElement;
                 btn.parentNode.removeChild(btn);
             },
             completeAll: function(){
-                s.ajax(updateUrl, o.initFunction);
+                s.ajax(updateUrl, initFunction);
             }
         });
 
-        s('.btn-upload', o.container).fileUpload({
+        s('.btn-upload', container).fileUpload({
             url: uploadUrl,
             completeAll: function(){
-                s.ajax(updateUrl, o.initFunction);
+                s.ajax(updateUrl, initFunction);
             }
         });
     };
 
     // Base init
-    o.initFunction();
+    initFunction();
 };
 
 // Load gallery if class found
