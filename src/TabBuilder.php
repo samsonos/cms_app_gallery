@@ -33,7 +33,7 @@ class TabBuilder extends FormTab
         /** @var \samson\activerecord\field $field */
         foreach ($form->fields as $field) {
             // If it is gallery field
-            if ($field->Type == 9) {
+            if (!empty($field) && $field->Type == 9) {
                 // If there is no materialfield object for gallery
                 if (
                 !dbQuery('materialfield')
