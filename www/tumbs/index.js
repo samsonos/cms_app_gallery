@@ -203,7 +203,7 @@ var SJSGallery = function( container )
             return false;
         });
 
-        $('.scms-gallery').sortable({
+        $(o.container.DOMElement).sortable({
             axis: "x,y",
             revert: true,
             scroll: true,
@@ -231,7 +231,9 @@ var SJSGallery = function( container )
             }
         });
 
-        s('.scms-gallery').dropFileUpload({
+        //console.log(s('.scms-gallery', o.container));
+
+        o.container.dropFileUpload({
             url: uploadUrl,
             drop: function(elem){
                 elem.css('background-color', 'inherit');
@@ -243,7 +245,7 @@ var SJSGallery = function( container )
             }
         });
 
-        s('.btn-upload').fileUpload({
+        s('.btn-upload', o.container).fileUpload({
             url: uploadUrl,
             completeAll: function(){
                 s.ajax(updateUrl, o.initFunction);

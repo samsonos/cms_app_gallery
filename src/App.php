@@ -16,11 +16,8 @@ class App extends \samson\cms\App
     /** Identifier */
     protected $id = 'gallery';
 
-    /** @var \samson\fs\FileService File service pointer */
+    /** @var \samsonphp\fs\FileService File service pointer */
     protected $fs;
-
-    // TODO: @omaximus comments?
-    private $priority = array();
 
     /**
      * Initialize module
@@ -52,28 +49,28 @@ class App extends \samson\cms\App
     {
         // TODO: Change this logic to make tab loading more simple
         // Create new gallery tab object to load it
-        class_exists(\samson\core\AutoLoader::className('MaterialTab', 'samson\cms\web\gallery'));
+        class_exists(\samson\core\AutoLoader::className('TabBuilder', 'samson\cms\web\gallery'));
     }
 
     /**
      * Controller for deleting material image from gallery
-     * @param string $id Gallery Image identifier
+     * @param string $imageId Gallery Image identifier
      * @return array Async response array
      */
-    public function __async_delete($id)
+    public function __async_delete($imageId)
     {
         // Async response
         $result = array( 'status' => false );
 
-        /** @var \samson\activerecord\gallery $db_image */
-        $db_image = null;
+        /** @var \samson\activerecord\gallery $image */
+        $image = null;
 
         // Find gallery record in DB
-        if (dbQuery('gallery')->id($id)->first($db_image)) {
-            if ($db_image->Path != '') {
+        if (dbQuery('gallery')->id($imageId)->first($image)) {
+            if ($image->Path != '') {
 
                 // Get image path
-                $imagePath = $this->formImagePath($db_image->Path, $db_image->Src);
+                $imagePath = $this->formImagePath($image->Path, $image->Src);
                 // Physically remove file from server
                 if ($this->imageExists($imagePath)) {
                     $this->fs->delete($imagePath);
@@ -86,7 +83,7 @@ class App extends \samson\cms\App
                 if (class_exists('\samson\scale\ScaleController', false)) {
                     foreach (array_keys($scale->thumnails_sizes) as $folder) {
                         // Form image path for scale module
-                        $imageScalePath = $this->formImagePath($db_image->Path . $folder . '/', $db_image->Src);
+                        $imageScalePath = $this->formImagePath($image->Path . $folder . '/', $image->Src);
                         if ($this->imageExists($imageScalePath)) {
                             $this->fs->delete($imageScalePath);
                         }
@@ -95,7 +92,7 @@ class App extends \samson\cms\App
             }
 
             // Remove record from DB
-            $db_image->delete();
+            $image->delete();
 
             $result['status'] = true;
         }
@@ -105,58 +102,60 @@ class App extends \samson\cms\App
 
     /**
 	 * Controller for rendering gallery images list
-	 * @param string $materialId Material identifier
+	 * @param int $materialFieldId Gallery identifier, represented as materialfield id
 	 * @return array Async response array
 	 */
-    public function __async_update($materialId)
+    public function __async_update($materialFieldId)
     {
-        return array('status' => true, 'html' => $this->html_list($materialId));
+        return array('status' => true, 'html' => $this->getHTML($materialFieldId));
     }
 
     /**
 	 * Controller for image upload
-	 * @param string $material_id Material identifier 
+	 * @param string $materialFieldId Gallery identifier, represented as materialfield id
 	 * @return array Async response array
 	 */
-    public function __async_upload($material_id)
+    public function __async_upload($materialFieldId)
     {
-        // Async response
-        s()->async(true);
-
         $result = array('status' => false);
 
         /** @var \samson\upload\Upload $upload  Pointer to uploader object */
         $upload = null;
         // Uploading file to server and path current material identifier
-        if (uploadFile($upload, array(), $material_id)) {
-            /** @var \samson\activerecord\material $material Current material object */
-            $material = null;
-            /** @var array $children List of related materials */
-            $children = null;
+        if (uploadFile($upload, array(), $materialFieldId)) {
+            /** @var \samson\activerecord\materialfield $materialField MaterialField object to identify gallery */
+            $materialField = null;
+//            /** @var array $children List of related materials */
+//            $children = null;
             // Check if participant has not uploaded remix yet
-            if (dbQuery('material')->cond('MaterialID', $material_id)->cond('Active', 1)->first($material)) {
+            if (
+            dbQuery('materialfield')
+                ->cond('MaterialFieldID', $materialFieldId)
+                ->cond('Active', 1)
+                ->first($materialField)
+            ) {
                 // Create empty db record
                 $photo = new \samson\activerecord\gallery(false);
                 $photo->Name = $upload->realName();
                 $photo->Src = $upload->name();
                 $photo->Path = $upload->path();
-                $photo->MaterialID = $material->id;
+                $photo->MaterialID = $materialField->id;
                 $photo->size = $upload->size();
                 $photo->Active = 1;
                 $photo->save();
 
-                if (dbQuery('material')->cond('parent_id', $material->id)->cond('type', 2)->exec($children)) {
-                    foreach ($children as $child) {
-                        $childPhoto = new \samson\activerecord\gallery(false);
-                        $childPhoto->Name = $upload->realName();
-                        $childPhoto->Src = $upload->name();
-                        $childPhoto->Path = $upload->path();
-                        $childPhoto->MaterialID = $child->id;
-                        $childPhoto->size = $upload->size();
-                        $childPhoto->Active = 1;
-                        $childPhoto->save();
-                    }
-                }
+//                if (dbQuery('material')->cond('parent_id', $material->id)->cond('type', 2)->exec($children)) {
+//                    foreach ($children as $child) {
+//                        $childPhoto = new \samson\activerecord\gallery(false);
+//                        $childPhoto->Name = $upload->realName();
+//                        $childPhoto->Src = $upload->name();
+//                        $childPhoto->Path = $upload->path();
+//                        $childPhoto->MaterialID = $child->id;
+//                        $childPhoto->size = $upload->size();
+//                        $childPhoto->Active = 1;
+//                        $childPhoto->save();
+//                    }
+//                }
 
                 // Call scale if it is loaded
                 if (class_exists('\samson\scale\ScaleController', false)) {
@@ -172,7 +171,10 @@ class App extends \samson\cms\App
         return $result;
     }
 
-    // TODO: @omaximus Comments?
+    /**
+     * Function to save image priority
+     * @return array Async response array
+     */
     public function __async_priority()
     {
         $result = array('status' => true);
@@ -229,7 +231,7 @@ class App extends \samson\cms\App
     }
 
     /**
-     * TODO: @omaximus Comments?
+     * Applies all changes with the image and save it
      * @param int $imageId Edit image identifier
      * @return array
      */
@@ -244,10 +246,13 @@ class App extends \samson\cms\App
         /** @var resource $croppedImage Resource of cropped image */
         $croppedImage = null;
 
+        // If there is such image in database
         if (dbQuery('gallery')->cond('PhotoID', $imageId)->first($image)) {
 
+            // Form proper path
             $path = $this->formImagePath($image->Path, $image->Src);
 
+            // Check image extension
             switch (pathinfo($path, PATHINFO_EXTENSION)) {
                 case 'jpeg':
                     $imageResource = imagecreatefromjpeg($path);
@@ -271,6 +276,7 @@ class App extends \samson\cms\App
                     break;
             }
 
+            // delete temporary images
             imagedestroy($croppedImage);
             imagedestroy($imageResource);
         }
@@ -279,17 +285,17 @@ class App extends \samson\cms\App
 
     /**
      * Render gallery images list
-     * @param string $material_id Material identifier
+     * @param string $materialFieldId Material identifier
      * @return string html representation of image list
      */
-    public function html_list($material_id)
+    public function getHTML($materialFieldId)
     {
         // Get all material images
         $items_html = '';
         /** @var array $images List of gallery images */
         $images = null;
         // there are gallery images
-        if (dbQuery('gallery')->cond('MaterialID', $material_id)->order_by('priority')->exec($images)) {
+        if (dbQuery('gallery')->cond('MaterialID', $materialFieldId)->order_by('priority')->exec($images)) {
             /** @var \samson\cms\CMSGallery $image */
             foreach ($images as $image) {
                 // Get image size string
@@ -305,16 +311,13 @@ class App extends \samson\cms\App
                 // set image size string representation, if it is not 0
                 $size = ($image->size == 0) ? '' : $size . $this->humanFileSize($image->size);
 
-                //Set priority array
-                $this->priority[$image->priority] = $image->PhotoID;
-
                 // Render gallery image tumb
                 $items_html .= $this->view('tumbs/item')
                     ->set($image, 'image')
                     ->set('name', utf8_limit_string($image->Name, 18, '...'))
                     ->set('imgpath', $path)
                     ->set('size', $size)
-                    ->set('material_id', $material_id)
+                    ->set('material_id', $materialFieldId)
                     ->output();
             }
         }
@@ -322,13 +325,19 @@ class App extends \samson\cms\App
         // Render content into inner content html
         return $this->view('tumbs/index')
             ->set('images', $items_html)
-            ->set('material_id', $material_id)
+            ->set('material_id', $materialFieldId)
         ->output();
     }
 
-    // TODO: @omaximus Comments?
+    /**
+     * Function to form image size
+     * @param int $bytes Bytes count
+     * @param int $decimals Decimal part of number(count of numbers)
+     * @return string Generated image size
+     */
     public function humanFileSize($bytes, $decimals = 2)
     {
+        /** @var string $sizeLetters Size shortcuts */
         $sizeLetters = 'BKBMBGBTBPB';
         $factor = (int)(floor((strlen($bytes) - 1) / 3));
         $sizeLetter = ($factor <= 0) ? substr($sizeLetters, 0, 1) : substr($sizeLetters, $factor * 2 - 1, 2);
@@ -338,29 +347,44 @@ class App extends \samson\cms\App
 
     /**
      * Function to reduce code size in __async_edit method
-     * @param $imageResource
-     * @return bool|resource
+     * @param resource $imageResource Image to crop
+     * @return bool|resource Cropped image
      */
     public function cropImage($imageResource)
     {
+        /** @var int $imageTransparency Transparent color */
         $imageTransparency = imagecolorallocatealpha($imageResource, 255, 255, 255, 127);
+        /** @var resource $rotatedImage Rotated image resource */
         $rotatedImage = imagerotate($imageResource, -($_POST['rotate']), $imageTransparency);
+        /** @var resource $croppedImage Cropped image resource */
         $croppedImage = imagecrop($rotatedImage, array('x' => $_POST['crop_x'],
             'y' => $_POST['crop_y'],
             'width' => $_POST['crop_width'],
             'height' => $_POST['crop_height']));
+        // Delete temp image resource
         imagedestroy($rotatedImage);
+        // Return cropped image
         return $croppedImage;
     }
 
-    // TODO: @omaximus Comments?
+    /**
+     * Same as cropImage() for transparent images
+     * @param resource $imageResource Image to crop
+     * @return bool|resource Cropped image
+     */
     public function cropTransparentImage($imageResource)
     {
+        /** @var int $imageTransparency Transparent color */
         $imageTransparency = imagecolorallocatealpha($imageResource, 255, 255, 255, 127);
+        /** @var resource $croppedImage Cropped image resource */
         $croppedImage = imagecreatetruecolor($_POST['crop_width'], $_POST['crop_height']);
+        // Fill new image with transparent color
         imagefill($croppedImage, 0, 0, $imageTransparency);
+        // Save Alpha chanel
         imagesavealpha($croppedImage, true);
+        /** @var resource $rotatedImage Rotated image resource */
         $rotatedImage = imagerotate($imageResource, -($_POST['rotate']), $imageTransparency);
+        // Copy rotated image to cropped one
         imagecopy(
             $croppedImage,
             $rotatedImage,
@@ -371,16 +395,26 @@ class App extends \samson\cms\App
             $_POST['crop_width'],
             $_POST['crop_height']
         );
+        // Delete temp image resource
         imagedestroy($rotatedImage);
+        // Return result image
         return $croppedImage;
     }
 
-    // TODO: @omaximus Comments?
+    /**
+     * Checks if image exists, supports old database structure
+     * @param string $imagePath Path to image(Full or not)
+     * @param string $imageSrc Image name, if it wasn't in $imagePath
+     * @return bool
+     */
     private function imageExists($imagePath, $imageSrc = null)
     {
+        // If image name is second parameter
         if (isset($imageSrc)) {
+            // Form path to the image
             $imageFullPath = $this->formImagePath($imagePath, $imageSrc);
         } else {
+            // Path was already set
             $imageFullPath = $imagePath;
         }
 
@@ -388,7 +422,12 @@ class App extends \samson\cms\App
         return $this->fs->exists($imageFullPath);
     }
 
-    // TODO: @omaximus Comments?
+    /**
+     * Function to form image path correctly, also supports old database structure
+     * @param string $imagePath Path to the image
+     * @param string $imageSrc Image name
+     * @return string Full path to image
+     */
     private function formImagePath($imagePath, $imageSrc)
     {
         // Get old-way image path, remove full path to check file
