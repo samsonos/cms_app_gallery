@@ -1,8 +1,8 @@
 /** Javascript SamsonCMS Gallery function-object */
 var SJSGallery = function( container )
 {
-    // Cache reference
-    //var o = this;
+    // Safely save container object
+    var container = s(container);
     var containerDOMElement = container.DOMElement;
     var uploadUrl, updateUrl, priorityUrl;
 
@@ -22,11 +22,6 @@ var SJSGallery = function( container )
     } else {
         console.error('No priority URL was set, please add "__action_priority" attribute and proper URL to gallery container');
     }
-
-    console.log(container);
-    // Safely save container object
-    container = s(container);
-    //console.log(o.container);
 
     /** Gallery initialization */
     var initFunction = function( response )
@@ -216,7 +211,7 @@ var SJSGallery = function( container )
             items: "> li:not(:last-child)",
             stop: function() {
                 var ids = [];
-                $('.scms-gallery li', container.DOMElement).each(function(idx, item){
+                $('li', container.DOMElement).each(function(idx, item){
                     if (item.hasAttribute('image_id')) {
                         ids[idx] = item.getAttribute('image_id');
                     }
@@ -232,8 +227,6 @@ var SJSGallery = function( container )
                 });
             }
         });
-
-        //console.log(s('.scms-gallery', o.container));
 
         container.dropFileUpload({
             url: uploadUrl,
