@@ -6,7 +6,7 @@
         "samsonos/cms_app":"*",
         "samsonos/php_jquery_ui":"*",
         "samsonos/cms_app_material":"*",
-        "samsonos/php_upload":"*"
+        "samsonphp/upload":"*"
     },
     "license":"Open Software License (OSL) v 3.0",
     "homepage":"http://samsonos.com/",
