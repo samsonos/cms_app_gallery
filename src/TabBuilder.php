@@ -50,7 +50,7 @@ class TabBuilder extends FormTab
                 }
                 // Create tab
                 $tab = new MaterialTab($this->form, $materialField->MaterialFieldID);
-                $tab->name = $field->Description;
+                $tab->name = empty($field->Description) ? $field->Name : $field->Description;
                 // Add it to form tabs
                 $this->form->tabs[] = $tab;
             }
