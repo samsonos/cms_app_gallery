@@ -139,7 +139,7 @@ class App extends \samson\cms\App
                 $photo->Name = $upload->realName();
                 $photo->Src = $upload->name();
                 $photo->Path = $upload->path();
-                $photo->MaterialID = $materialField->id;
+                $photo->materialFieldId = $materialField->id;
                 $photo->size = $upload->size();
                 $photo->Active = 1;
                 $photo->save();
@@ -295,7 +295,7 @@ class App extends \samson\cms\App
         /** @var array $images List of gallery images */
         $images = null;
         // there are gallery images
-        if (dbQuery('gallery')->cond('MaterialID', $materialFieldId)->order_by('priority')->exec($images)) {
+        if (dbQuery('gallery')->cond('materialFieldId', $materialFieldId)->order_by('priority')->exec($images)) {
             /** @var \samson\cms\CMSGallery $image */
             foreach ($images as $image) {
                 // Get image size string
