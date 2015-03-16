@@ -140,6 +140,7 @@ class App extends \samson\cms\App
                 $photo->Src = $upload->name();
                 $photo->Path = $upload->path();
                 $photo->materialFieldId = $materialField->id;
+                $photo->MaterialID = $materialField->MaterialID;
                 $photo->size = $upload->size();
                 $photo->Active = 1;
                 $photo->save();
