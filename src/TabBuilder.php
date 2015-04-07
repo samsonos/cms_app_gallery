@@ -6,7 +6,8 @@
 
 namespace samson\cms\web\gallery;
 
-use samson\cms\web\material\FormTab;
+use samsoncms\app\material\FormTab;
+use samsoncms\app\material\Form;
 
 class TabBuilder extends FormTab
 {
@@ -16,10 +17,10 @@ class TabBuilder extends FormTab
 
 
     /**
-     * @param \samson\cms\web\material\Form $form
+     * @param Form $form
      * @param FormTab $parent
      */
-    public function __construct(\samson\cms\web\material\Form & $form, FormTab & $parent = null)
+    public function __construct(Form & $form, FormTab & $parent = null)
     {
         // Save pointer to Form
         $this->form = & $form;
