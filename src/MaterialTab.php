@@ -1,7 +1,7 @@
 <?php
 namespace samson\cms\web\gallery;
 
-use samson\cms\web\material\FormTab;
+use samsoncms\app\material\FormTab;
 
 /**
  * Gallery Tab for CMSMaterial form 
