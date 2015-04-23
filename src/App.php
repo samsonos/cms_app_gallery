@@ -5,7 +5,7 @@ namespace samson\cms\web\gallery;
  * SamsonCMS application for interacting with material gallery
  * @author egorov@samsonos.com
  */
-class App extends \samson\cms\App
+class App extends \samsoncms\Application
 {
     /** Application name */
     public $name = 'Галлерея';
