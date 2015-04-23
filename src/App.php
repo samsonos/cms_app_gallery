@@ -440,10 +440,13 @@ class App extends \samson\cms\App
 
         // form relative path to the image
         $dir = quotemeta(__SAMSON_BASE__);
-        if ($dir == '/') {
-            return substr($path, 1);
-        } else {
-            return preg_replace('/' . addcslashes($dir, '/') . '/', '', $path);
+        // TODO: WTF? Why do we need this, need comments!!!
+        if (strpos($path, 'http://') === false) {
+            if ($dir == '/') {
+                return substr($path, 1);
+            } else {
+                return preg_replace('/' . addcslashes($dir, '/') . '/', '', $path);
+            }
         }
     }
 }
