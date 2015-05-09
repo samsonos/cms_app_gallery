@@ -30,7 +30,7 @@ class App extends \samsoncms\Application
         $this->fs = & m('fs');
 
         // Subscribe to event - add gallery field additional field type
-        \samsonphp\event\Event::subscribe('cms_field.select_create', array($this, 'fieldSelectCreate'));
+        //\samsonphp\event\Event::subscribe('cms_field.select_create', array($this, 'fieldSelectCreate'));
 
         return parent::init($params);
     }
