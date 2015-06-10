@@ -1,5 +1,7 @@
 <?php
 namespace samson\cms\web\gallery;
+use samsonphp\event\Event;
+use samsoncms\app\gallery\tab\Gallery;
 
 /**
  * SamsonCMS application for interacting with material gallery
@@ -29,10 +31,26 @@ class App extends \samsoncms\Application
         // Set pointer to file service
         $this->fs = & m('fs');
 
+        Event::subscribe('samsoncms.material.form.created', array($this, 'tabBuilder'));
         // Subscribe to event - add gallery field additional field type
         //\samsonphp\event\Event::subscribe('cms_field.select_create', array($this, 'fieldSelectCreate'));
 
         return parent::init($params);
+    }
+
+    public function tabBuilder(\samsoncms\app\material\form\Form & $form)
+    {
+        if (sizeof($form->structureIds)) {
+            $galleryFields = dbQuery('field')
+                ->cond('Type', 9)
+                ->join('structurefield')
+                ->cond('structurefield_StructureID', $form->structureIds)
+                ->exec();
+
+            foreach ($galleryFields as $field) {
+                $form->tabs[] = new Gallery($this, dbQuery(''), $form->entity, $field);
+            }
+        }
     }
 
     /** Field select creation event handler */
@@ -448,7 +466,5 @@ class App extends \samsoncms\Application
                 return preg_replace('/' . addcslashes($dir, '/') . '/', '', $path);
             }
         }
-		
-		return $path;
     }
 }
