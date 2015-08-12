@@ -40,11 +40,11 @@ class App extends \samsoncms\Application
 
     public function tabBuilder(\samsoncms\app\material\form\Form & $form)
     {
-        if (sizeof($form->structureIds)) {
+        if (sizeof($form->navigationIDs)) {
             $galleryFields = dbQuery('field')
                 ->cond('Type', 9)
                 ->join('structurefield')
-                ->cond('structurefield_StructureID', $form->structureIds)
+                ->cond('structurefield_StructureID', $form->navigationIDs)
                 ->exec();
 
             foreach ($galleryFields as $field) {
@@ -119,20 +119,20 @@ class App extends \samsoncms\Application
     }
 
     /**
-	 * Controller for rendering gallery images list
-	 * @param int $materialFieldId Gallery identifier, represented as materialfield id
-	 * @return array Async response array
-	 */
+     * Controller for rendering gallery images list
+     * @param int $materialFieldId Gallery identifier, represented as materialfield id
+     * @return array Async response array
+     */
     public function __async_update($materialFieldId)
     {
         return array('status' => true, 'html' => $this->getHTML($materialFieldId));
     }
 
     /**
-	 * Controller for image upload
-	 * @param string $materialFieldId Gallery identifier, represented as materialfield id
-	 * @return array Async response array
-	 */
+     * Controller for image upload
+     * @param string $materialFieldId Gallery identifier, represented as materialfield id
+     * @return array Async response array
+     */
     public function __async_upload($materialFieldId)
     {
         $result = array('status' => false);
@@ -345,7 +345,7 @@ class App extends \samsoncms\Application
         return $this->view('tumbs/index')
             ->set('images', $items_html)
             ->set('material_id', $materialFieldId)
-        ->output();
+            ->output();
     }
 
     /**
