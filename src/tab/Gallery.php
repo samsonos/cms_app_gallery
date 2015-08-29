@@ -8,6 +8,7 @@
 
 namespace samsoncms\app\gallery\tab;
 
+use samson\activerecord\field;
 use samson\cms\Navigation;
 use samsoncms\form\tab\Generic;
 use samsonframework\core\RenderInterface;
@@ -30,8 +31,9 @@ class Gallery extends Generic
     public $materialField;
 
     /** @inheritdoc */
-    public function __construct(RenderInterface $renderer, QueryInterface $query, Record $entity, $field)
+    public function __construct(RenderInterface $renderer, QueryInterface $query, Record $entity, field $field)
     {
+        // Check if material have this gallery additional field stored
         if (!$query->className('materialfield')
                 ->cond('MaterialID', $entity->id)
                 ->cond('FieldID', $field->id)

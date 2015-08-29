@@ -464,5 +464,7 @@ class Application extends \samsoncms\Application
                 return preg_replace('/' . addcslashes($dir, '/') . '/', '', $path);
             }
         }
+
+        return $path;
     }
 }
