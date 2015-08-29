@@ -16,6 +16,9 @@ class Application extends \samsoncms\Application
     /** Hide application access from main menu */
     public $hide = true;
 
+    /** @var string Entity class name */
+    protected $entity = '\samson\activerecord\gallery';
+
     /** Identifier */
     protected $id = 'gallery';
 
@@ -78,13 +81,13 @@ class Application extends \samsoncms\Application
     public function __async_delete($imageId)
     {
         // Async response
-        $result = array( 'status' => false );
+        $result = array();
 
         /** @var \samson\activerecord\gallery $image */
         $image = null;
 
         // Find gallery record in DB
-        if ($this->query->className('gallery')->id($imageId)->first($image)) {
+        if ($this->findAsyncEntityByID($imageId, $image, $result)) {
             if ($image->Path != '') {
                 // Get image path
                 $imagePath = $this->formImagePath($image->Path, $image->Src);
@@ -110,8 +113,6 @@ class Application extends \samsoncms\Application
 
             // Remove record from DB
             $image->delete();
-
-            $result['status'] = true;
         }
 
         return $result;
