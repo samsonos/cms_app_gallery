@@ -1,0 +1,1 @@
+<img src="<?php iv('path')?>" title="<?php iv('title')?>">

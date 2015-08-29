@@ -57,7 +57,12 @@ class Gallery extends Generic
     /** @inheritdoc */
     public function content()
     {
-        $collection = new \samsoncms\app\gallery\Collection($this->renderer, $this->query->className('\samson\activerecord\gallery'), new Pager());
+        $collection = new \samsoncms\app\gallery\Collection(
+            $this->renderer,
+            $this->query->className('\samson\activerecord\gallery'),
+            $this->materialField,
+            new Pager()
+        );
 
         return $this->renderer->view($this->contentView)->set('content', $collection->render())->output();
     }
