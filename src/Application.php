@@ -60,17 +60,6 @@ class Application extends \samsoncms\Application
     }
 
     /**
-     * @see \samson\core\ExternalModule::init()
-     * @return bool|void Returns module check result
-     */
-    public function prepare()
-    {
-        // TODO: Change this logic to make tab loading more simple
-        // Create new gallery tab object to load it
-        class_exists(\samson\core\AutoLoader::className('TabBuilder', 'samson\cms\web\gallery'));
-    }
-
-    /**
      * Controller for deleting material image from gallery
      * @param string $imageId Gallery Image identifier
      * @return array Async response array
