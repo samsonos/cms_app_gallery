@@ -50,7 +50,7 @@ class Application extends \samsoncms\Application
         // If we have related structures
         if (sizeof($form->navigationIDs)) {
             // Get all gallery additional field for material form structures
-            $galleryFields = dbQuery('field')
+            $galleryFields = $this->query->className('field')
                 ->cond('Type', 9)
                 ->join('structurefield')
                 ->cond('structurefield_StructureID', $form->navigationIDs)
@@ -58,7 +58,7 @@ class Application extends \samsoncms\Application
 
             // Create tab for each additional gallery field
             foreach ($galleryFields as $field) {
-                $form->tabs[] = new Gallery($this, dbQuery(''), $form->entity, $field);
+                $form->tabs[] = new Gallery($this, $this->query, $form->entity, $field);
             }
         }
     }
@@ -83,9 +83,8 @@ class Application extends \samsoncms\Application
         $image = null;
 
         // Find gallery record in DB
-        if (dbQuery('gallery')->id($imageId)->first($image)) {
+        if ($this->query->className('gallery')->id($imageId)->first($image)) {
             if ($image->Path != '') {
-
                 // Get image path
                 $imagePath = $this->formImagePath($image->Path, $image->Src);
                 // Physically remove file from server

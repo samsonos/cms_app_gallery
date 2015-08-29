@@ -8,26 +8,31 @@
 
 namespace samsoncms\app\gallery\tab;
 
-
 use samson\cms\Navigation;
 use samsoncms\form\tab\Generic;
 use samsonframework\core\RenderInterface;
 use samsonframework\orm\QueryInterface;
 use samsonframework\orm\Record;
 
+/**
+ * SamsonCMS material form gallery tab
+ * @package samsoncms\app\gallery\tab
+ */
 class Gallery extends Generic
 {
     /** @var string Tab name or identifier */
-    protected $name = 'Gallery Tab';
+    protected $name = 'Галлерея';
 
+    /** @var string HTML tab identifier*/
     protected $id = 'gallery_tab';
 
+    /** @var \samson\activerecord\materialfield Pointer to gallery additional field record */
     public $materialField;
 
     /** @inheritdoc */
     public function __construct(RenderInterface $renderer, QueryInterface $query, Record $entity, $field)
     {
-        if (!dbQuery('materialfield')
+        if (!$query->className('materialfield')
                 ->cond('MaterialID', $entity->id)
                 ->cond('FieldID', $field->id)
                 ->first($this->materialField)) {
@@ -39,7 +44,8 @@ class Gallery extends Generic
             $this->materialField->save();
         }
 
-        $this->name .= ' '.$field->Name;
+        // Form tab name
+        $this->name = t(isset($field->Name{0}) ? $field->Name : $this->name, true);
 
         // Call parent constructor to define all class fields
         parent::__construct($renderer, $query, $entity);
