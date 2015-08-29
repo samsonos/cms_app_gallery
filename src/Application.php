@@ -29,6 +29,7 @@ class Application extends \samsoncms\Application
      */
     public function init(array $params = array())
     {
+        // TODO: Should be change to DI in future
         // Set pointer to file service
         $this->fs = & m('fs');
 
@@ -36,7 +37,7 @@ class Application extends \samsoncms\Application
         Event::subscribe('samsoncms.material.form.created', array($this, 'tabBuilder'));
 
         // Subscribe to event - add gallery field additional field type
-        //\samsonphp\event\Event::subscribe('cms_field.select_create', array($this, 'fieldSelectCreate'));
+        Event::subscribe('cms_field.select_create', array($this, 'fieldSelectCreate'));
 
         return parent::init($params);
     }
@@ -359,63 +360,6 @@ class Application extends \samsoncms\Application
         $factor = (int)(floor((strlen($bytes) - 1) / 3));
         $sizeLetter = ($factor <= 0) ? substr($sizeLetters, 0, 1) : substr($sizeLetters, $factor * 2 - 1, 2);
         return sprintf("%.{$decimals}f", $bytes / pow(1024, $factor)) . $sizeLetter;
-    }
-
-
-    /**
-     * Function to reduce code size in __async_edit method
-     * @param resource $imageResource Image to crop
-     * @return bool|resource Cropped image
-     */
-    public function cropImage($imageResource)
-    {
-        /** @var int $imageTransparency Transparent color */
-        $imageTransparency = imagecolorallocatealpha($imageResource, 255, 255, 255, 127);
-        /** @var resource $rotatedImage Rotated image resource */
-        $rotatedImage = imagerotate($imageResource, -($_POST['rotate']), $imageTransparency);
-        /** @var resource $croppedImage Cropped image resource */
-        $croppedImage = imagecrop($rotatedImage, array('x' => $_POST['crop_x'],
-            'y' => $_POST['crop_y'],
-            'width' => $_POST['crop_width'],
-            'height' => $_POST['crop_height']));
-        // Delete temp image resource
-        imagedestroy($rotatedImage);
-        // Return cropped image
-        return $croppedImage;
-    }
-
-    /**
-     * Same as cropImage() for transparent images
-     * @param resource $imageResource Image to crop
-     * @return bool|resource Cropped image
-     */
-    public function cropTransparentImage($imageResource)
-    {
-        /** @var int $imageTransparency Transparent color */
-        $imageTransparency = imagecolorallocatealpha($imageResource, 255, 255, 255, 127);
-        /** @var resource $croppedImage Cropped image resource */
-        $croppedImage = imagecreatetruecolor($_POST['crop_width'], $_POST['crop_height']);
-        // Fill new image with transparent color
-        imagefill($croppedImage, 0, 0, $imageTransparency);
-        // Save Alpha chanel
-        imagesavealpha($croppedImage, true);
-        /** @var resource $rotatedImage Rotated image resource */
-        $rotatedImage = imagerotate($imageResource, -($_POST['rotate']), $imageTransparency);
-        // Copy rotated image to cropped one
-        imagecopy(
-            $croppedImage,
-            $rotatedImage,
-            0,
-            0,
-            $_POST['crop_x'],
-            $_POST['crop_y'],
-            $_POST['crop_width'],
-            $_POST['crop_height']
-        );
-        // Delete temp image resource
-        imagedestroy($rotatedImage);
-        // Return result image
-        return $croppedImage;
     }
 
     /**
