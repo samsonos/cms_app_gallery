@@ -13,5 +13,18 @@ namespace samsoncms\app\gallery;
  */
 class Model
 {
+    public function remove()
+    {
 
+    }
+
+    public function upload()
+    {
+
+    }
+
+    public function priority()
+    {
+
+    }
 }

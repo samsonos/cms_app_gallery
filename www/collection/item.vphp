@@ -1,4 +1,5 @@
 <li title="<?php iv('image_Name') ?>" image_id = "<?php v('image_PhotoID') ?>">
+    <?php iv('cols')?>
     <?php vimg('imgpath', '', '', $image->Name)?>
     <p><span class="img_name"><?php iv('name') ?></span><span class="img_size"><?php iv('size') ?></span></p>
     <!--<a href="<?php url_base('gallery', 'show_edit', 'image_id') ?>" class="btn-edit icon2 icon_16x16 icon-edit" title="<?php t('Редактировать') ?>"></a>-->

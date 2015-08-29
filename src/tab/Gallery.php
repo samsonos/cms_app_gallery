@@ -10,6 +10,7 @@ namespace samsoncms\app\gallery\tab;
 
 use samson\activerecord\field;
 use samson\cms\Navigation;
+use samson\pager\Pager;
 use samsoncms\form\tab\Generic;
 use samsonframework\core\RenderInterface;
 use samsonframework\orm\QueryInterface;
@@ -56,8 +57,8 @@ class Gallery extends Generic
     /** @inheritdoc */
     public function content()
     {
-        $content = $this->renderer->getHTML($this->materialField->id);
+        $collection = new \samsoncms\app\gallery\Collection($this->renderer, $this->query->className('\samson\activerecord\gallery'), new Pager());
 
-        return $this->renderer->view($this->contentView)->content($content)->output();
+        return $this->renderer->view($this->contentView)->set('content', $collection->render())->output();
     }
 }

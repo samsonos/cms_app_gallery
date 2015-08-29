@@ -1,7 +1,6 @@
 <ul class="scms-gallery clearfix", __action_upload="<?php url_base('gallery', 'upload', 'material_id');?>",
     __action_update="<?php url_base('gallery', 'update', 'material_id');?>"
     __action_priority="<?php url_base('gallery', 'priority') ?>">
-	<?php v('images')?>
-	<li class="btn-upload">
-	</li>
+	<?php v('items')?>
+	<li class="btn-upload"></li>
 </ul>
