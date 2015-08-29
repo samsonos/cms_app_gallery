@@ -1,5 +1,6 @@
 <?php
-namespace samson\cms\web\gallery;
+namespace samsoncms\app\gallery;
+
 use samsonphp\event\Event;
 use samsoncms\app\gallery\tab\Gallery;
 
@@ -31,22 +32,31 @@ class Application extends \samsoncms\Application
         // Set pointer to file service
         $this->fs = & m('fs');
 
+        // Subscribe to material form created event for custom tab rendering
         Event::subscribe('samsoncms.material.form.created', array($this, 'tabBuilder'));
+
         // Subscribe to event - add gallery field additional field type
         //\samsonphp\event\Event::subscribe('cms_field.select_create', array($this, 'fieldSelectCreate'));
 
         return parent::init($params);
     }
 
+    /**
+     * Render all gallery additional fields as material form tabs
+     * @param \samsoncms\app\material\form\Form $form Material form insctance
+     */
     public function tabBuilder(\samsoncms\app\material\form\Form & $form)
     {
+        // If we have related structures
         if (sizeof($form->navigationIDs)) {
+            // Get all gallery additional field for material form structures
             $galleryFields = dbQuery('field')
                 ->cond('Type', 9)
                 ->join('structurefield')
                 ->cond('structurefield_StructureID', $form->navigationIDs)
                 ->exec();
 
+            // Create tab for each additional gallery field
             foreach ($galleryFields as $field) {
                 $form->tabs[] = new Gallery($this, dbQuery(''), $form->entity, $field);
             }
@@ -126,7 +136,7 @@ class Application extends \samsoncms\Application
     {
         $result = array('status' => false);
 
-        /** @var \samson\upload\Upload $upload  Pointer to uploader object */
+        /** @var \samsonphp\upload\Upload $upload  Pointer to uploader object */
         $upload = null;
         // Uploading file to server and path current material identifier
         if (uploadFile($upload, array(), $materialFieldId)) {
