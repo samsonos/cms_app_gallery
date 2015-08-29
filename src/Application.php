@@ -7,7 +7,7 @@ use samsoncms\app\gallery\tab\Gallery;
  * SamsonCMS application for interacting with material gallery
  * @author egorov@samsonos.com
  */
-class App extends \samsoncms\Application
+class Application extends \samsoncms\Application
 {
     /** Application name */
     public $name = 'Галлерея';
