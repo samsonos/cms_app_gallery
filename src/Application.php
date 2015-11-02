@@ -137,7 +137,7 @@ class Application extends \samsoncms\Application
     {
         $result = array('status' => false);
 
-        /** @var \samsonphp\upload\Upload $upload  Pointer to uploader object */
+        /** @var \samsonphp\upload\Upload $upload Pointer to uploader object */
         $upload = null;
         // Verify extension image
         if ($this->verifyExtensionFile()) {
