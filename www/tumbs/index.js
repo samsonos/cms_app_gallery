@@ -244,8 +244,9 @@ var SJSGallery = function( container )
             url: uploadUrl,
             completeAll: function(){
                 s.ajax(updateUrl, initFunction);
-            }
-        }, 'gallery');
+            },
+            typeUpload: 'gallery'
+        });
     };
 
     // Base init
