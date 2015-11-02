@@ -245,7 +245,7 @@ var SJSGallery = function( container )
             completeAll: function(){
                 s.ajax(updateUrl, initFunction);
             }
-        });
+        }, 'gallery');
     };
 
     // Base init
