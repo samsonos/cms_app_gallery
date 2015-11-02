@@ -214,8 +214,6 @@ var SamsonJSGallery =
 			}			
 		}
 
-        s.trace('Gallery23');
-		
 		// Вернем указатель на себя
 		return this;
 	}

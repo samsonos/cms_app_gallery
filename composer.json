@@ -1,20 +1,23 @@
 {
-    "name":"samsonos/cms_app_gallery",
-    "description":"SamsonCMS Material gallery application",
-    "author":"Vitaly Iegorov <egorov@samsonos.com>",
-    "require":{
-        "samsoncms/application":"*",
-        "samsonos/php_jquery_ui":"*",
-        "samsoncms/material":"*",
-        "samsonphp/upload":"*"
-    },
-	"minimum-stability":"dev",
-    "license":"Open Software License (OSL) v 3.0",
-    "homepage":"http://samsonos.com/",
-    "autoload": {
-        "classmap": ["src/"],
-        "psr-0": {
-            "samson\\cms\\web\\gallery": "src/"
-        }
+  "name": "samsonos/cms_app_gallery",
+  "description": "SamsonCMS Material gallery application",
+  "author": "Vitaly Iegorov <egorov@samsonos.com>",
+  "require": {
+    "samsoncms/application": "*",
+    "samsonos/php_jquery_ui": "*",
+    "samsoncms/material": "*",
+    "samsonphp/upload": "*"
+  },
+  "minimum-stability": "dev",
+  "license": "Open Software License (OSL) v 3.0",
+  "homepage": "http://samsonos.com/",
+  "autoload": {
+    "classmap": ["src/"],
+    "psr-0": {
+      "samsoncms\\app\\gallery": "src/"
     }
+  },
+  "config": {
+    "github-protocols": ["https"]
+  }
 }

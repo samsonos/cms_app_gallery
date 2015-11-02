@@ -1,5 +1,6 @@
 <?php
-namespace samson\cms\web\gallery;
+namespace samsoncms\app\gallery;
+
 use samsonphp\event\Event;
 use samsoncms\app\gallery\tab\Gallery;
 
@@ -7,13 +8,16 @@ use samsoncms\app\gallery\tab\Gallery;
  * SamsonCMS application for interacting with material gallery
  * @author egorov@samsonos.com
  */
-class App extends \samsoncms\Application
+class Application extends \samsoncms\Application
 {
     /** Application name */
     public $name = 'Галлерея';
 
     /** Hide application access from main menu */
     public $hide = true;
+
+    /** @var string Entity class name */
+    protected $entity = '\samson\activerecord\gallery';
 
     /** Identifier */
     protected $id = 'gallery';
@@ -28,27 +32,37 @@ class App extends \samsoncms\Application
      */
     public function init(array $params = array())
     {
+        // TODO: Should be change to DI in future
         // Set pointer to file service
         $this->fs = & m('fs');
 
+        // Subscribe to material form created event for custom tab rendering
         Event::subscribe('samsoncms.material.form.created', array($this, 'tabBuilder'));
+
         // Subscribe to event - add gallery field additional field type
-        //\samsonphp\event\Event::subscribe('cms_field.select_create', array($this, 'fieldSelectCreate'));
+        Event::subscribe('cms_field.select_create', array($this, 'fieldSelectCreate'));
 
         return parent::init($params);
     }
 
+    /**
+     * Render all gallery additional fields as material form tabs
+     * @param \samsoncms\app\material\form\Form $form Material form insctance
+     */
     public function tabBuilder(\samsoncms\app\material\form\Form & $form)
     {
+        // If we have related structures
         if (sizeof($form->navigationIDs)) {
-            $galleryFields = dbQuery('field')
+            // Get all gallery additional field for material form structures
+            $galleryFields = $this->query->className('field')
                 ->cond('Type', 9)
                 ->join('structurefield')
                 ->cond('structurefield_StructureID', $form->navigationIDs)
                 ->exec();
 
+            // Create tab for each additional gallery field
             foreach ($galleryFields as $field) {
-                $form->tabs[] = new Gallery($this, dbQuery(''), $form->entity, $field);
+                $form->tabs[] = new Gallery($this, $this->query, $form->entity, $field);
             }
         }
     }
@@ -60,17 +74,6 @@ class App extends \samsoncms\Application
     }
 
     /**
-     * @see \samson\core\ExternalModule::init()
-     * @return bool|void Returns module check result
-     */
-    public function prepare()
-    {
-        // TODO: Change this logic to make tab loading more simple
-        // Create new gallery tab object to load it
-        class_exists(\samson\core\AutoLoader::className('TabBuilder', 'samson\cms\web\gallery'));
-    }
-
-    /**
      * Controller for deleting material image from gallery
      * @param string $imageId Gallery Image identifier
      * @return array Async response array
@@ -78,15 +81,14 @@ class App extends \samsoncms\Application
     public function __async_delete($imageId)
     {
         // Async response
-        $result = array( 'status' => false );
+        $result = array();
 
         /** @var \samson\activerecord\gallery $image */
         $image = null;
 
         // Find gallery record in DB
-        if (dbQuery('gallery')->id($imageId)->first($image)) {
+        if ($this->findAsyncEntityByID($imageId, $image, $result)) {
             if ($image->Path != '') {
-
                 // Get image path
                 $imagePath = $this->formImagePath($image->Path, $image->Src);
                 // Physically remove file from server
@@ -111,8 +113,6 @@ class App extends \samsoncms\Application
 
             // Remove record from DB
             $image->delete();
-
-            $result['status'] = true;
         }
 
         return $result;
@@ -137,7 +137,7 @@ class App extends \samsoncms\Application
     {
         $result = array('status' => false);
 
-        /** @var \samson\upload\Upload $upload Pointer to uploader object */
+        /** @var \samsonphp\upload\Upload $upload  Pointer to uploader object */
         $upload = null;
         // Verify extension image
         if ($this->verifyExtensionFile()) {
@@ -391,63 +391,6 @@ class App extends \samsoncms\Application
         return sprintf("%.{$decimals}f", $bytes / pow(1024, $factor)) . $sizeLetter;
     }
 
-
-    /**
-     * Function to reduce code size in __async_edit method
-     * @param resource $imageResource Image to crop
-     * @return bool|resource Cropped image
-     */
-    public function cropImage($imageResource)
-    {
-        /** @var int $imageTransparency Transparent color */
-        $imageTransparency = imagecolorallocatealpha($imageResource, 255, 255, 255, 127);
-        /** @var resource $rotatedImage Rotated image resource */
-        $rotatedImage = imagerotate($imageResource, -($_POST['rotate']), $imageTransparency);
-        /** @var resource $croppedImage Cropped image resource */
-        $croppedImage = imagecrop($rotatedImage, array('x' => $_POST['crop_x'],
-            'y' => $_POST['crop_y'],
-            'width' => $_POST['crop_width'],
-            'height' => $_POST['crop_height']));
-        // Delete temp image resource
-        imagedestroy($rotatedImage);
-        // Return cropped image
-        return $croppedImage;
-    }
-
-    /**
-     * Same as cropImage() for transparent images
-     * @param resource $imageResource Image to crop
-     * @return bool|resource Cropped image
-     */
-    public function cropTransparentImage($imageResource)
-    {
-        /** @var int $imageTransparency Transparent color */
-        $imageTransparency = imagecolorallocatealpha($imageResource, 255, 255, 255, 127);
-        /** @var resource $croppedImage Cropped image resource */
-        $croppedImage = imagecreatetruecolor($_POST['crop_width'], $_POST['crop_height']);
-        // Fill new image with transparent color
-        imagefill($croppedImage, 0, 0, $imageTransparency);
-        // Save Alpha chanel
-        imagesavealpha($croppedImage, true);
-        /** @var resource $rotatedImage Rotated image resource */
-        $rotatedImage = imagerotate($imageResource, -($_POST['rotate']), $imageTransparency);
-        // Copy rotated image to cropped one
-        imagecopy(
-            $croppedImage,
-            $rotatedImage,
-            0,
-            0,
-            $_POST['crop_x'],
-            $_POST['crop_y'],
-            $_POST['crop_width'],
-            $_POST['crop_height']
-        );
-        // Delete temp image resource
-        imagedestroy($rotatedImage);
-        // Return result image
-        return $croppedImage;
-    }
-
     /**
      * Checks if image exists, supports old database structure
      * @param string $imagePath Path to image(Full or not)
@@ -494,5 +437,7 @@ class App extends \samsoncms\Application
                 return preg_replace('/' . addcslashes($dir, '/') . '/', '', $path);
             }
         }
+
+        return $path;
     }
 }
