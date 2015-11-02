@@ -245,7 +245,8 @@ var SJSGallery = function( container )
             completeAll: function(){
                 s.ajax(updateUrl, initFunction);
             },
-            typeUpload: 'gallery'
+            textUpload: 'Загрузить картинку',
+            textProcess: 'Загрузка картинки'
         });
     };
 

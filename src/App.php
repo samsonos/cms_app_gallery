@@ -137,31 +137,33 @@ class App extends \samsoncms\Application
     {
         $result = array('status' => false);
 
-        /** @var \samson\upload\Upload $upload  Pointer to uploader object */
+        /** @var \samson\upload\Upload $upload Pointer to uploader object */
         $upload = null;
-        // Uploading file to server and path current material identifier
-        if (uploadFile($upload, array(), $materialFieldId)) {
-            /** @var \samson\activerecord\materialfield $materialField MaterialField object to identify gallery */
-            $materialField = null;
+        // Verify extension image
+        if ($this->verifyExtensionFile()) {
+            // Uploading file to server and path current material identifier
+            if (uploadFile($upload, array(), $materialFieldId)) {
+                /** @var \samson\activerecord\materialfield $materialField MaterialField object to identify gallery */
+                $materialField = null;
 //            /** @var array $children List of related materials */
 //            $children = null;
-            // Check if participant has not uploaded remix yet
-            if (
-            dbQuery('materialfield')
-                ->cond('MaterialFieldID', $materialFieldId)
-                ->cond('Active', 1)
-                ->first($materialField)
-            ) {
-                // Create empty db record
-                $photo = new \samson\activerecord\gallery(false);
-                $photo->Name = $upload->realName();
-                $photo->Src = $upload->name();
-                $photo->Path = $upload->path();
-                $photo->materialFieldId = $materialField->id;
-                $photo->MaterialID = $materialField->MaterialID;
-                $photo->size = $upload->size();
-                $photo->Active = 1;
-                $photo->save();
+                // Check if participant has not uploaded remix yet
+                if (
+                dbQuery('materialfield')
+                    ->cond('MaterialFieldID', $materialFieldId)
+                    ->cond('Active', 1)
+                    ->first($materialField)
+                ) {
+                    // Create empty db record
+                    $photo = new \samson\activerecord\gallery(false);
+                    $photo->Name = $upload->realName();
+                    $photo->Src = $upload->name();
+                    $photo->Path = $upload->path();
+                    $photo->materialFieldId = $materialField->id;
+                    $photo->MaterialID = $materialField->MaterialID;
+                    $photo->size = $upload->size();
+                    $photo->Active = 1;
+                    $photo->save();
 
 //                if (dbQuery('material')->cond('parent_id', $material->id)->cond('type', 2)->exec($children)) {
 //                    foreach ($children as $child) {
@@ -176,18 +178,44 @@ class App extends \samsoncms\Application
 //                    }
 //                }
 
-                // Call scale if it is loaded
-                if (class_exists('\samson\scale\ScaleController', false)) {
-                    /** @var \samson\scale\ScaleController $scale */
-                    $scale = m('scale');
-                    $scale->resize($upload->fullPath(), $upload->name(), $upload->uploadDir);
-                }
+                    // Call scale if it is loaded
+                    if (class_exists('\samson\scale\ScaleController', false)) {
+                        /** @var \samson\scale\ScaleController $scale */
+                        $scale = m('scale');
+                        $scale->resize($upload->fullPath(), $upload->name(), $upload->uploadDir);
+                    }
 
-                $result['status'] = true;
+                    $result['status'] = true;
+                }
             }
+        } else {
+            $errorText = "Файл ( " . urldecode($_SERVER['HTTP_X_FILE_NAME']) . " ) не является картинкой!";
+            $result = array('status' => false, 'errorText' => $errorText);
         }
 
         return $result;
+    }
+
+    /**
+     * method for verify extension file
+     * @return boolean true - file is image, false - file not image
+     * */
+    private function verifyExtensionFile()
+    {
+        $supported_image = array(
+            'gif',
+            'jpg',
+            'jpeg',
+            'png'
+        );
+
+        $fileName = $_SERVER['HTTP_X_FILE_NAME'];
+
+        $ext = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+        if (in_array($ext, $supported_image)) {
+            return true;
+        }
+        return false;
     }
 
     /**
