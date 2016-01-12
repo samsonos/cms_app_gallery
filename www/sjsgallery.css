@@ -2,13 +2,13 @@
 .sjs-gallery ul { display: block; margin:0 auto;  }
 
 /* ��������� ������ tumbnail�� ��� ��������, ��� �� ��� ���������� � ���� ������� */
-.sjs-gallery li { width:212px; height:160px;  }
+.sjs-gallery li { width:212px; height:160px; position: relative}
 
 .sjs-gallery-tn { width:210px; height:160px; border: 1px solid rgba(0, 0, 0, 0.2) }
 
 
 /* Tumbnail ��� �������� ������� */
-.sjs-gallery > * { display: block; margin:10px 10px 30px 10px !important;  float:left; list-style: none; text-align: center; }
+.sjs-gallery > * { display: block; margin:10px 10px 50px 10px !important;  float:left; list-style: none; text-align: center; }
 
 /* ��������� ��� ����������� tumbnail'� ����������� */
 .sjs-gallery-tn { display: table-cell; vertical-align:middle;}

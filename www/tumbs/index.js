@@ -72,6 +72,108 @@ var SJSGallery = function( container )
 
         }, true, true );
 
+		/**
+         * The function for async update value alt for image.
+         * */
+        $(function() {
+
+            // Check ajax send
+            var ajaxSend = true;
+            // Check push key "enter" from textArea
+            var keyDownEnter = false;
+            // Check change value textArea
+            var changeInput = false;
+
+            // We hang event on clicked out focus textarea or pushed keydown "enter" in textarea for all textArea from class "btn-displayTA"
+            s('.btn-displayTA', container).each(function (btn) {
+
+                // Field with value alt for image
+                var textArea = s('.updateAltImage', btn.parent());
+                //Getting value form
+                var textAreaValue = textArea.val();
+                // The function detecting click out focus text area form
+                textArea.blur(function () {
+                    if (!keyDownEnter) {
+                        ajaxUpdate(textArea, textAreaValue);
+                    }
+
+                    keyDownEnter = false;
+                });
+
+                // The function for detecting pressing key when we input text
+                textArea.keydown(function (elem, q, e) {
+                    // Detect pressing 'enter'
+                    if (e.keyCode == '13') {
+                        keyDownEnter = true;
+                        ajaxUpdate(s(elem), textAreaValue);
+                        return false;
+                    }
+                    changeInput = true;
+                });
+
+                // We hang event click for show textArea
+                btn.click(function () {
+                    // Show text area for input text
+                    textArea.show();
+                    // Focus element and setting cursor in end
+                    textArea.focus().val('');
+                    textArea.val(textAreaValue);
+                });
+            });
+
+            // Function for async update value alt from image
+            var ajaxUpdate = function (obj) {
+                if (ajaxSend && obj !== undefined && changeInput) {
+                    ajaxSend = false;
+
+                    //position for loader
+                    var position = new Object();
+                    position.type = 'absolute';
+                    position.top = '0';
+                    position.left = '0';
+
+                    //Init loader
+                    var loader = new Loader(obj.parent(), position);
+                    loader.show('', true);
+
+                    // Url for async send
+                    var href = obj.a('data-action');
+
+                    //if url not empty
+                    if (href.length != '') {
+                        // Send async request
+                        s.ajax(href, function (response) {
+                            response = JSON.parse(response);
+
+                            if (response.status) {
+                                // Hide current text area
+                                obj.hide();
+
+                                if (response.description) {
+                                    // Update title for alt under image
+                                    s('.btn-displayTA > span', obj.parent()).html(response.description);
+                                }
+
+                                if (response.value) {
+                                    // Update value textArea
+                                    obj.val(response.value);
+                                }
+
+                                ajaxSend = true;
+                                // remove loader
+                                loader.remove();
+                            }
+                        }, {'value': obj.val()});
+                    }
+
+                    changeInput = false;
+                } else if (!changeInput) {
+                    // Hide current text area
+                    obj.hide();
+                }
+            };
+        });
+		
         s('.btn-edit', container).click(function(btn){
             s.ajax(btn.a('href'), function(response){
                 if (response) try {
@@ -247,6 +349,31 @@ var SJSGallery = function( container )
             },
             textUpload: 'Загрузить картинку',
             textProcess: 'Загрузка картинки'
+        });
+		
+		/** 
+		* Updated quantity image in gallery. Quantity added to name
+		* Send async request and getting quantity.
+		*/
+        s.ajax(s(container).a('__action_getCount'), function(response) {
+            // Encoding response
+            response = JSON.parse(response);
+            // Tab gallery
+            var parentTab = s(container).parent().parent().parent();
+            // Elements with name
+            var headerName = s('.template-block-header > .tab-header > span:first-child', parentTab);
+            // Current value name
+            var text = headerName.html();
+            // Regular expression. Getting current quantity
+            var reg = text.match(/\(([^\(\)]+)\)$/);
+            // Check regular response. If exist then cut this quantity from text
+            if (reg && reg[1]) {
+                text = text.substr(0, text.length - (reg[1].length + 3));
+            }
+            // if ajax response exist count then update name in tab
+            if (response.count) {
+                headerName.html(text+' ('+response.count+')');
+            }
         });
     };
 
