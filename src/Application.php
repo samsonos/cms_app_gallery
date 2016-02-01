@@ -128,6 +128,61 @@ class Application extends \samsoncms\Application
         return array('status' => true, 'html' => $this->getHTML($materialFieldId));
     }
 
+	/**
+     * Controller for getting quantity image in gallery.
+     *
+     * @param integer $materialFieldId identefier Table MaterialField
+     * @return array Async response array with additional param count.
+     */
+    public function __async_getCount($materialFieldId)
+    {
+        // @var array $result Result of asynchronous controller
+        $response = array('status' => 1);
+        // Getting quantity from DB by param materialFieldId
+        $response['count'] = $this->query
+            ->entity(CMS::MATERIAL_IMAGES_RELATION_ENTITY)
+            ->cond(MaterialField::F_PRIMARY, $materialFieldId)
+            ->count();
+
+        return $response;
+    }
+	
+	/**
+     *  Controller for update material image properties alt from gallery.
+     *
+     *  @param int $imageId Gallery image identifier
+     *  @return array async response
+     */
+    public function __async_updateAlt($imageId)
+    {
+        // @var array $result Result of asynchronous controller
+        $result = array('status' => false);
+        // @var \samson\activerecord\gallery $image Image to insert into editor
+        $image = null;
+        //get data from ajax
+        $data = json_decode(file_get_contents('php://input'), true);
+        //set input value
+        $value = trim($data['value']);
+
+
+        // Getting first field image
+        if ($this->query->entity(CMS::MATERIAL_IMAGES_RELATION_ENTITY)
+            ->where('PhotoID', $imageId)->first($image)) {
+            // Update value alt
+            $image->Description = $value;
+            // Save result in datebase
+            $image->save();
+            // Set success status
+            $result['status'] = true;
+            // Reduce number of characters to 25
+            $result['description'] = utf8_limit_string($value, 25, '...');
+            // Return result value
+            $result['value'] = $value;
+        }
+
+        return $result;
+    }
+	
     /**
      * Controller for image upload
      * @param string $materialFieldId Gallery identifier, represented as materialfield id
