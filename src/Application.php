@@ -1,7 +1,10 @@
 <?php
 namespace samsoncms\app\gallery;
 
+use samson\activerecord\Field;
 use samsoncms\api\CMS;
+use samsoncms\api\Material;
+use samsoncms\api\MaterialField;
 use samsonphp\event\Event;
 use samsoncms\app\gallery\tab\Gallery;
 
@@ -35,7 +38,7 @@ class Application extends \samsoncms\Application
     {
         // TODO: Should be change to DI in future
         // Set pointer to file service
-        $this->fs = & m('fs');
+        $this->fs = & $this->system->module('fs');
 
         // Subscribe to material form created event for custom tab rendering
         Event::subscribe('samsoncms.material.form.created', array($this, 'tabBuilder'));
@@ -55,10 +58,10 @@ class Application extends \samsoncms\Application
         // If we have related structures
         if (sizeof($form->navigationIDs)) {
             // Get all gallery additional field for material form structures
-            $galleryFields = $this->query->className('field')
-                ->cond('Type', 9)
+            $galleryFields = $this->query->entity(\samsoncms\api\Field::ENTITY)
+                ->where('Type', 9)
                 ->join('structurefield')
-                ->cond('structurefield_StructureID', $form->navigationIDs)
+                ->where('structurefield_StructureID', $form->navigationIDs)
                 ->exec();
 
             // Create tab for each additional gallery field
@@ -98,7 +101,7 @@ class Application extends \samsoncms\Application
                 }
 
                 /** @var \samson\scale\ScaleController $scale */
-                $scale = m('scale');
+                $scale = $this->system->module('scale');
 
                 // Delete thumbnails
                 if (class_exists('\samson\scale\ScaleController', false)) {
@@ -142,7 +145,7 @@ class Application extends \samsoncms\Application
         // Getting quantity from DB by param materialFieldId
         $response['count'] = $this->query
             ->entity(CMS::MATERIAL_IMAGES_RELATION_ENTITY)
-            ->cond(MaterialField::F_PRIMARY, $materialFieldId)
+            ->where(MaterialField::F_PRIMARY, $materialFieldId)
             ->count();
 
         return $response;
@@ -205,9 +208,9 @@ class Application extends \samsoncms\Application
 //            $children = null;
                 // Check if participant has not uploaded remix yet
                 if (
-                dbQuery('materialfield')
-                    ->cond('MaterialFieldID', $materialFieldId)
-                    ->cond('Active', 1)
+                $this->query->entity(MaterialField::ENTITY)
+                    ->where('MaterialFieldID', $materialFieldId)
+                    ->where('Active', 1)
                     ->first($materialField)
                 ) {
                     // Create empty db record
@@ -221,23 +224,11 @@ class Application extends \samsoncms\Application
                     $photo->Active = 1;
                     $photo->save();
 
-//                if (dbQuery('material')->cond('parent_id', $material->id)->cond('type', 2)->exec($children)) {
-//                    foreach ($children as $child) {
-//                        $childPhoto = new \samson\activerecord\gallery(false);
-//                        $childPhoto->Name = $upload->realName();
-//                        $childPhoto->Src = $upload->name();
-//                        $childPhoto->Path = $upload->path();
-//                        $childPhoto->MaterialID = $child->id;
-//                        $childPhoto->size = $upload->size();
-//                        $childPhoto->Active = 1;
-//                        $childPhoto->save();
-//                    }
-//                }
 
                     // Call scale if it is loaded
                     if (class_exists('\samson\scale\ScaleController', false)) {
                         /** @var \samson\scale\ScaleController $scale */
-                        $scale = m('scale');
+                        $scale = $this->system->module('scale');
                         $scale->resize($upload->fullPath(), $upload->name(), $upload->uploadDir);
                     }
 
@@ -289,7 +280,7 @@ class Application extends \samsoncms\Application
                 /** @var \samson\activerecord\gallery $photo Variable to store image info */
                 $photo = null;
                 // If we have such image in database
-                if (dbQuery('gallery')->cond('PhotoID', $_POST['ids'][$i])->first($photo)) {
+                if ($this->query->entity(CMS::MATERIAL_IMAGES_RELATION_ENTITY)->where('PhotoID', $_POST['ids'][$i])->first($photo)) {
                     // Reset it's priority and save it
                     $photo->priority = $i;
                     $photo->save();
@@ -316,7 +307,7 @@ class Application extends \samsoncms\Application
         $result = array('status' => false);
         /** @var \samson\activerecord\gallery $image Image to insert into editor */
         $image = null;
-        if (dbQuery('gallery')->cond('PhotoID', $imageId)->first($image)) {
+        if ($this->query->entity(CMS::MATERIAL_IMAGES_RELATION_ENTITY)->where('PhotoID', $imageId)->first($image)) {
 
             /** @var string $path Path to image */
             $path = $this->formImagePath($image->Path, $image->Src);
@@ -350,7 +341,7 @@ class Application extends \samsoncms\Application
         $croppedImage = null;
 
         // If there is such image in database
-        if (dbQuery('gallery')->cond('PhotoID', $imageId)->first($image)) {
+        if ($this->query->entity(CMS::MATERIAL_IMAGES_RELATION_ENTITY)->where('PhotoID', $imageId)->first($image)) {
 
             // Form proper path
             $path = $this->formImagePath($image->Path, $image->Src);
@@ -358,10 +349,6 @@ class Application extends \samsoncms\Application
             // Check image extension
             switch (pathinfo($path, PATHINFO_EXTENSION)) {
                 case 'jpeg':
-                    $imageResource = imagecreatefromjpeg($path);
-                    $croppedImage = $this->cropImage($imageResource);
-                    $result['status'] = imagejpeg($croppedImage, $path);
-                    break;
                 case 'jpg':
                     $imageResource = imagecreatefromjpeg($path);
                     $croppedImage = $this->cropImage($imageResource);
@@ -398,7 +385,7 @@ class Application extends \samsoncms\Application
         /** @var array $images List of gallery images */
         $images = null;
         // there are gallery images
-        if (dbQuery('gallery')->cond('materialFieldId', $materialFieldId)->order_by('priority')->exec($images)) {
+        if ($this->query->entity(CMS::MATERIAL_IMAGES_RELATION_ENTITY)->where('materialFieldId', $materialFieldId)->order_by('priority')->exec($images)) {
             /** @var \samson\cms\CMSGallery $image */
             foreach ($images as $image) {
                 // Get image size string
@@ -455,7 +442,7 @@ class Application extends \samsoncms\Application
      */
     private function imageExists($imagePath, $imageSrc = null)
     {
-        // If image name is second parameter
+        // If image name is sewhere parameter
         if (isset($imageSrc)) {
             // Form path to the image
             $imageFullPath = $this->formImagePath($imagePath, $imageSrc);
