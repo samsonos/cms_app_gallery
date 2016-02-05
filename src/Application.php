@@ -1,6 +1,7 @@
 <?php
 namespace samsoncms\app\gallery;
 
+use samsoncms\api\CMS;
 use samsonphp\event\Event;
 use samsoncms\app\gallery\tab\Gallery;
 
