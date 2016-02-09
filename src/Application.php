@@ -56,9 +56,9 @@ class Application extends \samsoncms\Application
     public function tabBuilder(\samsoncms\app\material\form\Form & $form)
     {
         // If we have related structures
-        if (sizeof($form->navigationIDs)) {
+        if (count($form->navigationIDs)) {
             // Get all gallery additional field for material form structures
-            $galleryFields = $this->query->entity(\samsoncms\api\Field::ENTITY)
+            $galleryFields = $this->query->entity(\samsoncms\api\Field::class)
                 ->where('Type', 9)
                 ->join('structurefield')
                 ->where('structurefield_StructureID', $form->navigationIDs)
@@ -82,7 +82,7 @@ class Application extends \samsoncms\Application
      * @param string $imageId Gallery Image identifier
      * @return array Async response array
      */
-    public function __async_delete($imageId)
+    public function __async_delete($imageId, $materialFieldID = null)
     {
         // Async response
         $result = array();
@@ -100,11 +100,11 @@ class Application extends \samsoncms\Application
                     $this->fs->delete($imagePath);
                 }
 
-                /** @var \samson\scale\ScaleController $scale */
-                $scale = $this->system->module('scale');
-
                 // Delete thumbnails
                 if (class_exists('\samson\scale\ScaleController', false)) {
+                    /** @var \samson\scale\ScaleController $scale */
+                    $scale = $this->system->module('scale');
+
                     foreach (array_keys($scale->thumnails_sizes) as $folder) {
                         // Form image path for scale module
                         $imageScalePath = $this->formImagePath($image->Path . $folder . '/', $image->Src);
@@ -119,7 +119,7 @@ class Application extends \samsoncms\Application
             $image->delete();
         }
 
-        return $result;
+        return $this->__async_update($materialFieldID);
     }
 
     /**
@@ -385,7 +385,7 @@ class Application extends \samsoncms\Application
         /** @var array $images List of gallery images */
         $images = null;
         // there are gallery images
-        if ($this->query->entity(CMS::MATERIAL_IMAGES_RELATION_ENTITY)->where('materialFieldId', $materialFieldId)->order_by('priority')->exec($images)) {
+        if ($this->query->entity(CMS::MATERIAL_IMAGES_RELATION_ENTITY)->where('materialFieldId', $materialFieldId)->orderBy('priority')->exec($images)) {
             /** @var \samson\cms\CMSGallery $image */
             foreach ($images as $image) {
                 // Get image size string
@@ -404,6 +404,7 @@ class Application extends \samsoncms\Application
                 // Render gallery image tumb
                 $items_html .= $this->view('tumbs/item')
                     ->set($image, 'image')
+                    ->set('description', utf8_limit_string($image->Description, 25, '...'))
                     ->set('name', utf8_limit_string($image->Name, 18, '...'))
                     ->set('imgpath', $path)
                     ->set('size', $size)

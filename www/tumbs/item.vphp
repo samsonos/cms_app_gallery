@@ -4,5 +4,5 @@
 	<textarea class="updateAltImage" data-action="<?php url_base('gallery', 'updateAlt', 'image_id')?>"><?php v('image_Description')?></textarea>
     <!--<a href="<?php url_base('gallery', 'show_edit', 'image_id') ?>" class="btn-edit icon2 icon_16x16 icon-edit" title="<?php t('Редактировать') ?>"></a>-->
 	<p class="btn-displayTA"><strong style="font-weight:bold;">alt:</strong> <span><?php iv('description')?></span></p>
-    <a href="<?php url_base('gallery', 'delete', 'image_id', 'update', 'material_id')?>" class="icon2 icon_16x16 icon-delete btn-delete" title="<?php t('Удалить')?>"></a>
+    <a href="<?php url_base('gallery', 'delete', 'image_id', 'material_id')?>" class="icon2 icon_16x16 icon-delete btn-delete" title="<?php t('Удалить')?>"></a>
 </li>
