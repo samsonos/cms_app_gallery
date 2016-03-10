@@ -317,7 +317,7 @@ class Application extends \samsoncms\Application
                 $result['status'] = true;
                 $result['html'] = $this->view('editor/index')
                     ->set($image, 'image')
-                    ->set('path', $path)
+                    ->set($path, 'path')
                     ->output();
             }
         }
@@ -404,19 +404,19 @@ class Application extends \samsoncms\Application
                 // Render gallery image tumb
                 $items_html .= $this->view('tumbs/item')
                     ->set($image, 'image')
-                    ->set('description', utf8_limit_string($image->Description, 25, '...'))
-                    ->set('name', utf8_limit_string($image->Name, 18, '...'))
-                    ->set('imgpath', $path)
-                    ->set('size', $size)
-                    ->set('material_id', $materialFieldId)
+                    ->set(utf8_limit_string($image->Description, 25, '...'), 'description')
+                    ->set(utf8_limit_string($image->Name, 18, '...'), 'name')
+                    ->set($path, 'imgpath')
+                    ->set($size, 'size')
+                    ->set($materialFieldId, 'material_id')
                     ->output();
             }
         }
 
         // Render content into inner content html
         return $this->view('tumbs/index')
-            ->set('images', $items_html)
-            ->set('material_id', $materialFieldId)
+            ->set($items_html, 'images')
+            ->set($materialFieldId, 'material_id')
             ->output();
     }
 
