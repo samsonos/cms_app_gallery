@@ -7,6 +7,7 @@ use samsoncms\api\Material;
 use samsoncms\api\MaterialField;
 use samsonphp\event\Event;
 use samsoncms\app\gallery\tab\Gallery;
+use samsonframework\resource\ResourceMap;
 
 /**
  * SamsonCMS application for interacting with material gallery
@@ -395,7 +396,7 @@ class Application extends \samsoncms\Application
 
                 // if file doesn't exist
                 if (!$this->imageExists($path)) {
-                    $path = \samson\resourcer\ResourceRouter::url('www/img/no-img.png', $this);
+                      $path = ResourceMap::find('www/img/no-img.png', $this);
                 }
 
                 // set image size string representation, if it is not 0
